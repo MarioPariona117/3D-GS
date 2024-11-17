@@ -8,3 +8,6 @@ tensorboard_3d
 screenshots
 
 venv
+tandt/*
+db/*
+tandt_db.zip
