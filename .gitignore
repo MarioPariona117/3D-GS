@@ -7,10 +7,12 @@ diff_rasterization/dist
 tensorboard_3d
 screenshots
 
+venv
 notebooks/*
-db/*
 tandt/*
+db/*
 tandt_db.zip
-
+SIBR_viewers/
 SIBR_viewers/*
-submodules/*
+submodules/diff-gaussian-rasterization/
+submodules/simple-knn/
