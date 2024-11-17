@@ -11,3 +11,6 @@ venv
 tandt/*
 db/*
 tandt_db.zip
+SIBR_viewers/
+submodules/diff-gaussian-rasterization/
+submodules/simple-knn/
