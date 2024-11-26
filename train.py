@@ -143,6 +143,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         iter_end.record()
 
+        def evolutive_clone_loss (gaussians):
+            index_soft = torch.nn.functional.softmax(gaussians.growth_directions_probabilities, dim=0)
+            growth_direction_soft = torch.matmul(index_soft, gaussians.growth_directions)
+            return growth_direction_soft
+        
+        evolutive_clone_loss(gaussians).backward()
+
         with torch.no_grad():
             # Progress bar
             ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
