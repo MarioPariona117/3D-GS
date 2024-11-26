@@ -190,12 +190,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                     #print('sparse adam')
                 else:
                     gaussians.optimizer.step()
-                    gaussians.optimizer.zero_grad(set_to_none = True)
-                    #print(gaussians.optimizer.param_groups)
-                    #print('not sparse adam')
                     for param_group in gaussians.optimizer.param_groups:
                         print(param_group['name'])
                         print(param_group['params'][0].grad)
+                    gaussians.optimizer.zero_grad(set_to_none = True)
+                    #print(gaussians.optimizer.param_groups)
+                    #print('not sparse adam')
+                    
 
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
