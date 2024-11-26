@@ -500,8 +500,9 @@ class GaussianModel:
         covariances = self.get_actual_covariances()
         eigvals = torch.linalg.eigvals(covariances)
         eigvals = eigvals.type(torch.float)
-        v = torch.max(eigvals)
-        return v / (1 + torch.exp(- self.growth_length_s[0]))
+        variance = torch.max(eigvals)
+        sd = torch.sqrt(variance)
+        return 2 * sd / (1 + torch.exp(- self.growth_length_s[0]))
     
     def get_actual_covariances (self, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
