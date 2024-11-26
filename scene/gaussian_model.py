@@ -70,7 +70,7 @@ class GaussianModel:
         #setup evolutive clone
         self.growth_directions_count = growth_directions_count
         self.initialize_growth_directions()
-        self.growth_length_s = 1
+        self.growth_length_s = torch.ones(1)
 
     def capture(self):
         return (
@@ -500,7 +500,7 @@ class GaussianModel:
         covariances = self.get_actual_covariances()
         eigvals = torch.linalg.eigvals(covariances)
         v = torch.max(eigvals)
-        return v / (1 + torch.exp(- self.growth_length_s))
+        return v / (1 + torch.exp(- self.growth_length_s[0]))
     
     def get_actual_covariances (self, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
