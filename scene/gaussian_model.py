@@ -193,7 +193,9 @@ class GaussianModel:
             {'params': [self._features_rest], 'lr': training_args.feature_lr / 20.0, "name": "f_rest"},
             {'params': [self._opacity], 'lr': training_args.opacity_lr, "name": "opacity"},
             {'params': [self._scaling], 'lr': training_args.scaling_lr, "name": "scaling"},
-            {'params': [self._rotation], 'lr': training_args.rotation_lr, "name": "rotation"}
+            {'params': [self._rotation], 'lr': training_args.rotation_lr, "name": "rotation"},
+            {'params': [self.growth_directions_probabilities], 'lr': 0.01, "name": "growth_directions_probabilities"},
+            {'params': [self.growth_length_s], 'lr': 0.01, "name": "growth_length_s"}
         ]
 
         if self.optimizer_type == "default":
@@ -445,11 +447,8 @@ class GaussianModel:
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
-        #new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
-        cov = self.get_actual_covariances()
-        print(cov)
-        print(cov.size())
-        new_xyz = self._xyz[selected_pts_mask]
+        new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
+        #new_xyz = self._xyz[selected_pts_mask]
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
         new_opacities = self._opacity[selected_pts_mask]
@@ -498,7 +497,7 @@ class GaussianModel:
     def calc_growth_dist (self):
         # v is 2 * maximum standard deviation of original gaussians
         # max variance = max eigenvalue of covariance matrix
-        covariances = self.get_covariance()
+        covariances = self.get_actual_covariances()
         eigvals = torch.linalg.eigvals(covariances)
         v = torch.max(eigvals)
         return v / (1 + torch.exp(- self.growth_length_s))
