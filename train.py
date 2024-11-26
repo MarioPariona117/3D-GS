@@ -169,11 +169,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                     size_threshold = 20 if iteration > opt.opacity_reset_interval else None
                     gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii)
-                    print('growth_directions_probablities:')
+                    """ print('growth_directions_probablities:')
                     print(gaussians.growth_directions_probabilities)
                     print('growth_length_s:')
                     print(gaussians.growth_length_s)
-                    print('\n')
+                    print('\n') """
                 
                 if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                     gaussians.reset_opacity()
@@ -186,9 +186,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                     visible = radii > 0
                     gaussians.optimizer.step(visible, radii.shape[0])
                     gaussians.optimizer.zero_grad(set_to_none = True)
+                    print(gaussians.optimizer.param_groups)
                 else:
                     gaussians.optimizer.step()
                     gaussians.optimizer.zero_grad(set_to_none = True)
+                    print(gaussians.optimizer.param_groups)
 
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
