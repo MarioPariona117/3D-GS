@@ -70,7 +70,7 @@ class GaussianModel:
         #setup evolutive clone
         self.growth_directions_count = growth_directions_count
         self.initialize_growth_directions()
-        self.growth_length_s = nn.Parameter(torch.ones(1).requires_grad_(True))
+        self.growth_length_s = nn.Parameter(torch.ones(1, device="cuda").requires_grad_(True))
 
     def capture(self):
         return (
@@ -451,8 +451,8 @@ class GaussianModel:
         
         new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
         #new_xyz = self._xyz[selected_pts_mask]
-        print(self.calc_growth_dir())
-        print(self.calc_growth_dist())
+        #print(self.calc_growth_dir())
+        #print(self.calc_growth_dist())
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
         new_opacities = self._opacity[selected_pts_mask]
