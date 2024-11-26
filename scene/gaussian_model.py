@@ -70,7 +70,7 @@ class GaussianModel:
         #setup evolutive clone
         self.growth_directions_count = growth_directions_count
         self.initialize_growth_directions()
-        self.growth_length_s = torch.ones(1)
+        self.growth_length_s = nn.Parameter(torch.ones(1).requires_grad_(True))
 
     def capture(self):
         return (
@@ -376,21 +376,22 @@ class GaussianModel:
         optimizable_tensors = {}
         for group in self.optimizer.param_groups:
             assert len(group["params"]) == 1
-            extension_tensor = tensors_dict[group["name"]]
-            stored_state = self.optimizer.state.get(group['params'][0], None)
-            if stored_state is not None:
+            if not (group["name"] == "growth_directions_probabilities" or group["name"] == "growth_length_s"):
+                extension_tensor = tensors_dict[group["name"]]
+                stored_state = self.optimizer.state.get(group['params'][0], None)
+                if stored_state is not None:
 
-                stored_state["exp_avg"] = torch.cat((stored_state["exp_avg"], torch.zeros_like(extension_tensor)), dim=0)
-                stored_state["exp_avg_sq"] = torch.cat((stored_state["exp_avg_sq"], torch.zeros_like(extension_tensor)), dim=0)
+                    stored_state["exp_avg"] = torch.cat((stored_state["exp_avg"], torch.zeros_like(extension_tensor)), dim=0)
+                    stored_state["exp_avg_sq"] = torch.cat((stored_state["exp_avg_sq"], torch.zeros_like(extension_tensor)), dim=0)
 
-                del self.optimizer.state[group['params'][0]]
-                group["params"][0] = nn.Parameter(torch.cat((group["params"][0], extension_tensor), dim=0).requires_grad_(True))
-                self.optimizer.state[group['params'][0]] = stored_state
+                    del self.optimizer.state[group['params'][0]]
+                    group["params"][0] = nn.Parameter(torch.cat((group["params"][0], extension_tensor), dim=0).requires_grad_(True))
+                    self.optimizer.state[group['params'][0]] = stored_state
 
-                optimizable_tensors[group["name"]] = group["params"][0]
-            else:
-                group["params"][0] = nn.Parameter(torch.cat((group["params"][0], extension_tensor), dim=0).requires_grad_(True))
-                optimizable_tensors[group["name"]] = group["params"][0]
+                    optimizable_tensors[group["name"]] = group["params"][0]
+                else:
+                    group["params"][0] = nn.Parameter(torch.cat((group["params"][0], extension_tensor), dim=0).requires_grad_(True))
+                    optimizable_tensors[group["name"]] = group["params"][0]
 
         return optimizable_tensors
 
@@ -486,7 +487,7 @@ class GaussianModel:
         self.growth_directions = torch.rand(self.growth_directions_count, 3, device="cuda")
         self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
 
-        self.growth_directions_probabilities = torch.full([self.growth_directions_count], 1 / self.growth_directions_count, device="cuda")
+        self.growth_directions_probabilities = nn.Parameter(torch.full([self.growth_directions_count], 1 / self.growth_directions_count, device="cuda").requires_grad_(True))
 
     def calc_growth_dir (self):
         index_hard = torch.argmax(self.growth_directions_probabilities)
