@@ -22,6 +22,8 @@ from simple_knn._C import distCUDA2
 from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation
 
+from collections import defaultdict
+
 try:
     from diff_gaussian_rasterization import SparseGaussianAdam
 except:
@@ -47,7 +49,7 @@ class GaussianModel:
         self.rotation_activation = torch.nn.functional.normalize
 
 
-    def __init__(self, sh_degree, optimizer_type="default"):
+    def __init__(self, sh_degree, optimizer_type="default", growth_directions_count = 200):
         self.active_sh_degree = 0
         self.optimizer_type = optimizer_type
         self.max_sh_degree = sh_degree  
@@ -64,6 +66,11 @@ class GaussianModel:
         self.percent_dense = 0
         self.spatial_lr_scale = 0
         self.setup_functions()
+
+        #setup evolutive clone
+        self.growth_directions_count = growth_directions_count
+        self.initialize_growth_directions()
+        self.growth_length_s = 1
 
     def capture(self):
         return (
@@ -438,6 +445,7 @@ class GaussianModel:
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
+        #new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
         new_xyz = self._xyz[selected_pts_mask]
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
@@ -471,3 +479,21 @@ class GaussianModel:
     def add_densification_stats(self, viewspace_point_tensor, update_filter):
         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter,:2], dim=-1, keepdim=True)
         self.denom[update_filter] += 1
+
+    def initialize_growth_directions (self):
+        self.growth_directions = torch.rand(self.growth_directions_count, 3, device="cuda")
+        self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
+
+        self.growth_directions_probabilities = torch.full(self.growth_directions_count, 1 / self.growth_directions_count, device="cuda")
+
+    def calc_growth_dir (self):
+        index_hard = torch.argmax(self.growth_directions_probabilities)
+        index_hard_one_hot = torch.nn.functional.one_hot(index_hard, num_classes = self.growth_directions_count, device="cuda").float()
+        growth_direction = torch.matmul(index_hard_one_hot, self.growth_directions)
+        return growth_direction
+    
+    def calc_growth_dist (self):
+        # v is 2 * maximum standard deviation of original gaussians
+        covariances = self.get_covariance
+        v = 'dawdwa'
+        return v / (1 + torch.exp(- self.growth_length_s))
