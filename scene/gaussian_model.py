@@ -499,7 +499,8 @@ class GaussianModel:
         # max variance = max eigenvalue of covariance matrix
         covariances = self.get_actual_covariances()
         eigvals = torch.linalg.eigvals(covariances)
-        v = torch.max(eigvals, dtype = torch.float)
+        eigvals = eigvals.type(torch.float)
+        v = torch.max(eigvals)
         return v / (1 + torch.exp(- self.growth_length_s[0]))
     
     def get_actual_covariances (self, scaling_modifier = 1):
