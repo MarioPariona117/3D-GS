@@ -345,11 +345,11 @@ class GaussianModel:
                 if stored_state is not None:
                     stored_state["exp_avg"] = stored_state["exp_avg"][mask]
                     stored_state["exp_avg_sq"] = stored_state["exp_avg_sq"][mask]
-    
+
                     del self.optimizer.state[group['params'][0]]
                     group["params"][0] = nn.Parameter((group["params"][0][mask].requires_grad_(True)))
                     self.optimizer.state[group['params'][0]] = stored_state
-    
+
                     optimizable_tensors[group["name"]] = group["params"][0]
                 else:
                     group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
@@ -451,6 +451,8 @@ class GaussianModel:
         
         new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
         #new_xyz = self._xyz[selected_pts_mask]
+        print(self.calc_growth_dir())
+        print(self.calc_growth_dist())
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
         new_opacities = self._opacity[selected_pts_mask]

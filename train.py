@@ -186,11 +186,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                     visible = radii > 0
                     gaussians.optimizer.step(visible, radii.shape[0])
                     gaussians.optimizer.zero_grad(set_to_none = True)
-                    print(gaussians.optimizer.param_groups)
+                    #print(gaussians.optimizer.param_groups)
                 else:
                     gaussians.optimizer.step()
                     gaussians.optimizer.zero_grad(set_to_none = True)
-                    print(gaussians.optimizer.param_groups)
+                    #print(gaussians.optimizer.param_groups)
 
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
