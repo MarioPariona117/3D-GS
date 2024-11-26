@@ -446,7 +446,7 @@ class GaussianModel:
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
         #new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
-        cov = self.get_covariance()
+        cov = self.get_actual_covariances()
         print(cov)
         print(cov.size())
         new_xyz = self._xyz[selected_pts_mask]
@@ -502,3 +502,7 @@ class GaussianModel:
         eigvals = torch.linalg.eigvals(covariances)
         v = torch.max(eigvals)
         return v / (1 + torch.exp(- self.growth_length_s))
+    
+    def get_actual_covariances (self, scaling_modifier = 1):
+        L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
+        return L @ L.transpose(1, 2)
