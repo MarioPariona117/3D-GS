@@ -487,7 +487,7 @@ class GaussianModel:
         self.growth_directions = torch.rand(self.growth_directions_count, 3, device="cuda")
         self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
 
-        self.growth_directions_probabilities = torch.full(self.growth_directions_count, 1 / self.growth_directions_count, device="cuda")
+        self.growth_directions_probabilities = torch.full((self.growth_directions_count), 1 / self.growth_directions_count, device="cuda")
 
     def calc_growth_dir (self):
         index_hard = torch.argmax(self.growth_directions_probabilities)
@@ -497,6 +497,7 @@ class GaussianModel:
     
     def calc_growth_dist (self):
         # v is 2 * maximum standard deviation of original gaussians
+        # max variance = max eigenvalue of covariance matrix
         covariances = self.get_covariance
         v = 'dawdwa'
         return v / (1 + torch.exp(- self.growth_length_s))
