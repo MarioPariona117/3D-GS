@@ -9,6 +9,7 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import torch
 from scene import Scene
 import os
@@ -27,23 +28,49 @@ except:
     SPARSE_ADAM_AVAILABLE = False
 
 
+# Parallelisable code for rendering
+def render_and_save(idx, view, gaussians, pipeline, background, render_path, gts_path, train_test_exp, separate_sh):
+    rendering = render(view, gaussians, pipeline, background, use_trained_exp=train_test_exp, separate_sh=separate_sh)["render"]
+    gt = view.original_image[0:3, :, :]
+
+    if train_test_exp:
+        rendering = rendering[..., rendering.shape[-1] // 2:]
+        gt = gt[..., gt.shape[-1] // 2:]
+
+    render_file = os.path.join(render_path, '{0:05d}.png'.format(idx))
+    gt_file = os.path.join(gts_path, '{0:05d}.png'.format(idx))
+    torchvision.utils.save_image(rendering, render_file)
+    torchvision.utils.save_image(gt, gt_file)
+
+    return idx
+
+
 def render_set(model_path, name, iteration, views, gaussians, pipeline, background, train_test_exp, separate_sh):
+    if len(views) == 0:
+        return
+    
     render_path = os.path.join(model_path, name, "ours_{}".format(iteration), "renders")
     gts_path = os.path.join(model_path, name, "ours_{}".format(iteration), "gt")
 
     makedirs(render_path, exist_ok=True)
     makedirs(gts_path, exist_ok=True)
 
-    for idx, view in enumerate(tqdm(views, desc="Rendering progress")):
-        rendering = render(view, gaussians, pipeline, background, use_trained_exp=train_test_exp, separate_sh=separate_sh)["render"]
-        gt = view.original_image[0:3, :, :]
+    threads = min(len(views), os.cpu_count())
+    print(f"Using {threads} threads for rendering")
+    with ThreadPoolExecutor(max_workers=threads) as executor:
+        futures = {
+            executor.submit(
+                render_and_save, idx, view, gaussians, pipeline, background, render_path, gts_path, train_test_exp, separate_sh
+            ): idx
+            for idx, view in enumerate(views)
+        }
+        
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Rendering progress"):
+            try:
+                _ = future.result()
+            except Exception as e:
+                print(f"Error occurred for index {futures[future]}: {e}")
 
-        if args.train_test_exp:
-            rendering = rendering[..., rendering.shape[-1] // 2:]
-            gt = gt[..., gt.shape[-1] // 2:]
-
-        torchvision.utils.save_image(rendering, os.path.join(render_path, '{0:05d}'.format(idx) + ".png"))
-        torchvision.utils.save_image(gt, os.path.join(gts_path, '{0:05d}'.format(idx) + ".png"))
 
 def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, skip_train : bool, skip_test : bool, separate_sh: bool):
     with torch.no_grad():
