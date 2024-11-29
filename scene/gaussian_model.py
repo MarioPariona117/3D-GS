@@ -502,7 +502,7 @@ class GaussianModel:
         return growth_direction """
     
     def calc_growth_dir (self):
-        index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities)
+        index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities, dim = 0)
         growth_direction = torch.matmul(index_soft, self.growth_directions)
         return growth_direction
     
