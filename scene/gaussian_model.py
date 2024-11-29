@@ -200,15 +200,15 @@ class GaussianModel:
 
         if self.optimizer_type == "default":
             self.optimizer = torch.optim.Adam(l, lr=0.0, eps=1e-15)
-            print('using adam1')
+            #print('using adam1')
         elif self.optimizer_type == "sparse_adam":
             try:
                 self.optimizer = SparseGaussianAdam(l, lr=0.0, eps=1e-15)
-                print('using sparse adam')
+                #print('using sparse adam')
             except:
                 # A special version of the rasterizer is required to enable sparse adam
                 self.optimizer = torch.optim.Adam(l, lr=0.0, eps=1e-15)
-                print('using adam2')
+                #print('using adam2')
 
         self.exposure_optimizer = torch.optim.Adam([self._exposure])
 
