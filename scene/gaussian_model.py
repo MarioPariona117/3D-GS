@@ -70,7 +70,7 @@ class GaussianModel:
         #setup evolutive clone
         self.growth_directions_count = growth_directions_count
         self.initialize_growth_directions()
-        self.growth_length_s = nn.Parameter(torch.full(1, 1 / 100, device="cuda").requires_grad_(True))
+        self.growth_length_s = nn.Parameter(torch.full([1], 1 / 100, device="cuda").requires_grad_(True))
 
     def capture(self):
         return (
