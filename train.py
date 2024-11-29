@@ -197,9 +197,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                     #print('sparse adam')
                 else:
                     gaussians.optimizer.step()
-                    for param_group in gaussians.optimizer.param_groups:
+                    """ for param_group in gaussians.optimizer.param_groups:
                         print(param_group['name'])
-                        print(param_group['params'][0].grad)
+                        print(param_group['params'][0].grad) """
                     gaussians.optimizer.zero_grad(set_to_none = True)
                     #print(gaussians.optimizer.param_groups)
                     #print('not sparse adam')
