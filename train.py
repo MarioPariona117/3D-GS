@@ -198,10 +198,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 else:
                     gaussians.optimizer.step()
                     for param_group in gaussians.optimizer.param_groups:
-                        if (param_group['name'] == 'growth_directions_probabilities' or param_group['name'] == 'growth_length_s'):
+                        """ if (param_group['name'] == 'growth_directions_probabilities' or param_group['name'] == 'growth_length_s'):
                             print(param_group['name'])
                             print(param_group['params'][0])
-                            print(param_group['params'][0].grad)
+                            print(param_group['params'][0].grad) """
                     
                     gaussians.optimizer.zero_grad(set_to_none = True)
                     #print(gaussians.optimizer.param_groups)
