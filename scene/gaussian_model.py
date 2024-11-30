@@ -75,7 +75,7 @@ class GaussianModel (torch.nn.Module):
 
         #test
         self.growth_xyz = nn.Parameter(torch.tensor([0.5,0.5,0.5]))
-        self.evol_clone_optimizer = torch.optim.Adam([self.growth.xyz], lr = 0.1, eps = 1e-15)
+        self.evol_clone_optimizer = torch.optim.Adam([self.growth_xyz], lr = 0.1, eps = 1e-15)
 
     def capture(self):
         return (
