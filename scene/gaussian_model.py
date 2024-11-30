@@ -73,6 +73,10 @@ class GaussianModel (torch.nn.Module):
         self.initialize_growth_directions()
         self.growth_length_s = nn.Parameter(torch.full([1], 1 / 100, device="cuda").requires_grad_(True))
 
+        #test
+        self.growth_xyz = nn.Parameter(torch.tensor([0.5,0.5,0.5]))
+        self.evol_clone_optimizer = torch.optim.Adam([self.growth.xyz], lr = 0.1, eps = 1e-15)
+
     def capture(self):
         return (
             self.active_sh_degree,
@@ -453,7 +457,8 @@ class GaussianModel (torch.nn.Module):
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
-        new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
+        #new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
+        new_xyz = self._xyz[selected_pts_mask] + self.growth_xyz
         #new_xyz = self._xyz[selected_pts_mask]
         """ print(self.calc_growth_dir())
         print(self.calc_growth_dist())

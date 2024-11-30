@@ -185,6 +185,12 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
             # Optimizer step
             if iteration < opt.iterations:
+
+                gaussians.evol_clone_optimizer.step()
+                gaussians.evol_clone_optimizer.zero_grad(set_to_none = True)
+                for param in gaussians.evol_clone_optimizer.param_groups:
+                    print (param)
+
                 gaussians.exposure_optimizer.step()
                 gaussians.exposure_optimizer.zero_grad(set_to_none = True)
                 if use_sparse_adam:
@@ -195,11 +201,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                     #print('sparse adam')
                 else:
                     gaussians.optimizer.step()
-                    for param_group in gaussians.optimizer.param_groups:
+                    """ for param_group in gaussians.optimizer.param_groups:
                         if (param_group['name'] == 'growth_directions_probabilities' or param_group['name'] == 'growth_length_s'):
                             print(param_group['name'])
                             print(param_group['params'][0])
-                            print(param_group['params'][0].grad)
+                            print(param_group['params'][0].grad) """
                     
                     gaussians.optimizer.zero_grad(set_to_none = True)
                     #print(gaussians.optimizer.param_groups)
