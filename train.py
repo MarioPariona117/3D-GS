@@ -189,7 +189,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 gaussians.evol_clone_optimizer.step()
                 for param in gaussians.evol_clone_optimizer.param_groups:
                     print (param)
-                    print(param.grad)
+                    print(param['params'].grad)
                 gaussians.evol_clone_optimizer.zero_grad(set_to_none = True)
                 
 
