@@ -187,9 +187,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if iteration < opt.iterations:
 
                 gaussians.evol_clone_optimizer.step()
-                gaussians.evol_clone_optimizer.zero_grad(set_to_none = True)
                 for param in gaussians.evol_clone_optimizer.param_groups:
                     print (param)
+                gaussians.evol_clone_optimizer.zero_grad(set_to_none = True)
+                
 
                 gaussians.exposure_optimizer.step()
                 gaussians.exposure_optimizer.zero_grad(set_to_none = True)
