@@ -159,6 +159,7 @@ class GaussianModel (torch.nn.Module):
             self.active_sh_degree += 1
 
     def create_from_pcd(self, pcd : BasicPointCloud, cam_infos : int, spatial_lr_scale : float):
+        print('create from pcd')
         self.spatial_lr_scale = spatial_lr_scale
         fused_point_cloud = torch.tensor(np.asarray(pcd.points)).float().cuda()
         fused_color = RGB2SH(torch.tensor(np.asarray(pcd.colors)).float().cuda())
@@ -188,6 +189,7 @@ class GaussianModel (torch.nn.Module):
         self._exposure = nn.Parameter(exposure.requires_grad_(True))
 
     def training_setup(self, training_args):
+        print('training setup')
         self.percent_dense = training_args.percent_dense
         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
         self.denom = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
@@ -278,6 +280,7 @@ class GaussianModel (torch.nn.Module):
         self._opacity = optimizable_tensors["opacity"]
 
     def load_ply(self, path, use_train_test_exp = False):
+        print('load_ply')
         plydata = PlyData.read(path)
         if use_train_test_exp:
             exposure_file = os.path.join(os.path.dirname(path), os.pardir, os.pardir, "exposure.json")
