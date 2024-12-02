@@ -395,7 +395,7 @@ class GaussianModel ():
         self._scaling = optimizable_tensors["scaling"]
         self._rotation = optimizable_tensors["rotation"]
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
-        self.growth_length_s = optimizable_tensors['grow_length_s']
+        self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
 
