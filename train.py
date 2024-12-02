@@ -184,7 +184,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 else:
                     gaussians.optimizer.step()
                     for param_group in gaussians.optimizer.param_groups:
-                        if (param_group['name'] == 's_prime' or param_group['name'] == 'v') and not (param_group['params'][0].grad is None):
+                        if (param_group['name'] == 's_prime' or param_group['name'] == 'v'):
                             print(param_group['name'])
                             print(param_group['params'][0])
                             print(param_group['params'][0].grad)
