@@ -556,6 +556,8 @@ class GaussianModel ():
         variance = torch.max(eigvals)
         sd = torch.sqrt(variance)
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
+        print(ret)
+        print(torch.diag_embed(ret))
         return torch.diag_embed(ret)
     
     def get_actual_covariances (self, scaling_modifier = 1):
