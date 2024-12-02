@@ -29,7 +29,7 @@ try:
 except:
     pass
 
-class GaussianModel (torch.nn.Module):
+class GaussianModel ():
 
     def setup_functions(self):
         def build_covariance_from_scaling_rotation(scaling, scaling_modifier, rotation):
@@ -49,8 +49,7 @@ class GaussianModel (torch.nn.Module):
         self.rotation_activation = torch.nn.functional.normalize
 
 
-    def __init__(self, sh_degree, optimizer_type="default", growth_directions_count = 200):
-        super(GaussianModel, self).__init__()
+    def __init__(self, sh_degree, optimizer_type="default", growth_directions_count = 20):
         self.active_sh_degree = 0
         self.optimizer_type = optimizer_type
         self.max_sh_degree = sh_degree  
@@ -70,12 +69,6 @@ class GaussianModel (torch.nn.Module):
 
         #setup evolutive clone
         self.growth_directions_count = growth_directions_count
-        self.initialize_growth_directions()
-        self.growth_length_s = nn.Parameter(torch.full([1], 1 / 100, device="cuda").requires_grad_(True))
-
-        #test
-        self.growth_xyz = nn.Parameter(torch.tensor([0.5,0.5,0.5], device='cuda').requires_grad_(True))
-        self.evol_clone_optimizer = torch.optim.Adam([self.growth_xyz], lr = 0.1, eps = 1e-15)
 
     def capture(self):
         return (
@@ -188,8 +181,9 @@ class GaussianModel (torch.nn.Module):
         exposure = torch.eye(3, 4, device="cuda")[None].repeat(len(cam_infos), 1, 1)
         self._exposure = nn.Parameter(exposure.requires_grad_(True))
 
-        self.growth_xyz = nn.Parameter(torch.tensor([0.5,0.5,0.5], device='cuda').requires_grad_(True))
-        self.evol_clone_optimizer = torch.optim.Adam([self.growth_xyz], lr = 0.1, eps = 1e-15)
+        self.initialize_growth_directions()
+        self.growth_length_s = nn.Parameter(torch.full([1], 1 / 100, device="cuda", requires_grad=True))
+        print(self._xyz.size)
 
     def training_setup(self, training_args):
         print('training setup')
@@ -204,8 +198,8 @@ class GaussianModel (torch.nn.Module):
             {'params': [self._opacity], 'lr': training_args.opacity_lr, "name": "opacity"},
             {'params': [self._scaling], 'lr': training_args.scaling_lr, "name": "scaling"},
             {'params': [self._rotation], 'lr': training_args.rotation_lr, "name": "rotation"},
-            {'params': [self.growth_directions_probabilities], 'lr': 0.01, "name": "growth_directions_probabilities"},
-            {'params': [self.growth_length_s], 'lr': 0.01, "name": "growth_length_s"}
+            {'params': [self.growth_directions_probabilities], 'lr': 0.001, "name": "growth_directions_probabilities"},
+            {'params': [self.growth_length_s], 'lr': 0.001, "name": "growth_length_s"}
         ]
 
         if self.optimizer_type == "default":
@@ -268,6 +262,8 @@ class GaussianModel (torch.nn.Module):
         opacities = self._opacity.detach().cpu().numpy()
         scale = self._scaling.detach().cpu().numpy()
         rotation = self._rotation.detach().cpu().numpy()
+
+
 
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
 
@@ -463,11 +459,7 @@ class GaussianModel (torch.nn.Module):
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
-        #new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
-        new_xyz = self._xyz[selected_pts_mask] + self.growth_xyz
-        print(self._xyz[selected_pts_mask])
-        print(new_xyz)
-        print(self.growth_xyz.grad)
+        new_xyz = self._xyz[selected_pts_mask] + self.calc_growth_dir() * self.calc_growth_dist()
         #new_xyz = self._xyz[selected_pts_mask]
         """ print(self.calc_growth_dir())
         print(self.calc_growth_dist())
@@ -507,11 +499,11 @@ class GaussianModel (torch.nn.Module):
         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter,:2], dim=-1, keepdim=True)
         self.denom[update_filter] += 1
 
-    def initialize_growth_directions (self):
+    def initialize_growth_directions (self, point_cloud_size):
         self.growth_directions = torch.rand(self.growth_directions_count, 3, device="cuda")
         self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
 
-        self.growth_directions_probabilities = nn.Parameter(torch.full([self.growth_directions_count], 1 / self.growth_directions_count, device="cuda").requires_grad_(True))
+        self.growth_directions_probabilities = nn.Parameter(torch.full([self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
 
     """ def calc_growth_dir (self):
         index_hard = torch.argmax(self.growth_directions_probabilities)
