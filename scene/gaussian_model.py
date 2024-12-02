@@ -455,15 +455,18 @@ class GaussianModel:
         self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
     
     def del_mu(self, selected_pts_mask, N):
-        stds = self.get_scaling[selected_pts_mask].repeat(N,1)
         # Get matrix from quaternion.
         rots = build_rotation(self._rotation[selected_pts_mask]).repeat(N,1,1)
+
+        stds = self.get_scaling[selected_pts_mask]
+        S = stds / (1 + torch.exp(-self._s_prime[selected_pts_mask]))
+        # first half is for del_mu, second half is for -del_mu
+        S = torch.cat((S, -S), dim=0)
+
         delta_mu = torch.bmm(
             rots,
-            (stds * (1 / (1 + torch.exp(-self._s_prime[selected_pts_mask]))).repeat(N, 1)).unsqueeze(-1)
+            S.unsqueeze(-1)
         ).squeeze(-1)
-    
-        delta_mu[::2] *= -1
 
         return delta_mu
 
