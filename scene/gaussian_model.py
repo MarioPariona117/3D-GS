@@ -464,6 +464,7 @@ class GaussianModel (torch.nn.Module):
         new_xyz = self._xyz[selected_pts_mask] + self.growth_xyz
         print(self._xyz[selected_pts_mask])
         print(new_xyz)
+        print(self.growth_xyz.grad)
         #new_xyz = self._xyz[selected_pts_mask]
         """ print(self.calc_growth_dir())
         print(self.calc_growth_dist())

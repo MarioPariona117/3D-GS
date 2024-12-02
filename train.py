@@ -120,10 +120,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         Ll1 = l1_loss(image, gt_image)
         if FUSED_SSIM_AVAILABLE:
             ssim_value = fused_ssim(image.unsqueeze(0), gt_image.unsqueeze(0))
-            print('fused ssim')
+            #print('fused ssim')
         else:
             ssim_value = ssim(image, gt_image)
-            print('ssim')
+            #print('ssim')
 
         loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim_value)
 
