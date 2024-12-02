@@ -467,10 +467,10 @@ class GaussianModel ():
         new_features_dc = self._features_dc[selected_pts_mask].repeat(N,1,1)
         new_features_rest = self._features_rest[selected_pts_mask].repeat(N,1,1)
         new_opacity = self._opacity[selected_pts_mask].repeat(N,1)
-        new_tmp_radii = self.tmp_radii[selected_pts_mask].repeat(N,1)
+        new_tmp_radii = self.tmp_radii[selected_pts_mask].repeat(N)
 
-        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N,1)
-        new_growth_length_s = self.growth_length_s[selected_pts_mask].repeat(N)
+        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N ,1)
+        new_growth_length_s = self.growth_length_s[selected_pts_mask].repeat(N, 1)
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_growth_directions_probabilities, new_growth_length_s)
 
