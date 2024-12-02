@@ -269,7 +269,10 @@ if __name__ == "__main__":
     parser.add_argument("--start_checkpoint", type=str, default = None)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
-    
+
+    op.s_prime_lr = args.s_prime_lr
+    op.v_lr = args.v_lr
+
     print("Optimizing " + args.model_path)
 
     # Initialize system state (RNG)

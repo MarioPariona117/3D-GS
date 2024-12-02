@@ -484,7 +484,7 @@ class GaussianModel:
         new_xyz = delta_mu + xyz
 
         new_v = self._v[selected_pts_mask].repeat(N, 1)
-        phi = 1.2 * (1/(1 + torch.exp(new_v))) + 1
+        phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
         new_scaling = self.scaling_inverse_activation(self.get_scaling[selected_pts_mask].repeat(N,1) / phi)
 
         # maintain rotation, features, opacity, radii

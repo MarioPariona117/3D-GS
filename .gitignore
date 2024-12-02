@@ -11,3 +11,5 @@ venv
 tandt/*
 db/*
 tandt_db.zip
+saved_output/*
+nohup.out
