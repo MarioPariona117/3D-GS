@@ -178,8 +178,14 @@ class GaussianModel:
         self._exposure = nn.Parameter(exposure.requires_grad_(True))
 
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
-        self._s_prime = nn.Parameter(torch.zeros((fused_point_cloud.shape[0], 1), device="cuda", requires_grad=True))
-        self._v = nn.Parameter(torch.zeros((fused_point_cloud.shape[0], 1), device="cuda", requires_grad=True))
+        self._s_prime = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
+        self._v = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
+
+        # He initialization
+        nn.init.xavier_uniform_(self._s_prime)
+        nn.init.xavier_uniform_(self._v)
+        # self._s_prime = nn.Parameter(torch.zeros((fused_point_cloud.shape[0], 1), device="cuda", requires_grad=True))
+        # self._v = nn.Parameter(torch.zeros((fused_point_cloud.shape[0], 1), device="cuda", requires_grad=True))
 
     def training_setup(self, training_args: OptimizationParams):
         self.percent_dense = training_args.percent_dense
@@ -455,7 +461,7 @@ class GaussianModel:
         delta_mu = torch.bmm(
             rots,
             (stds * (1 / (1 + torch.exp(-self._s_prime[selected_pts_mask]))).repeat(N, 1)).unsqueeze(-1)
-        ).squeeze(1)
+        ).squeeze(-1)
     
         delta_mu[::2] *= -1
 
