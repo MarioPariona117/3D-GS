@@ -328,7 +328,7 @@ class GaussianModel:
             s_primes[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
         v_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("v")]
-        v_names = sorted(s_prime_names, key = lambda x: int(x.split('_')[-1]))
+        v_names = sorted(v_names, key = lambda x: int(x.split('_')[-1]))
         v = np.zeros((xyz.shape[0], len(v_names)))
         for idx, attr_name in enumerate(v_names):
             v[:, idx] = np.asarray(plydata.elements[0][attr_name])
