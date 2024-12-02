@@ -183,7 +183,7 @@ class GaussianModel ():
         
         print(fused_point_cloud.shape[0])
         self.initialize_growth_directions(fused_point_cloud.shape[0])
-        self.growth_length_s = nn.Parameter(torch.full((fused_point_cloud.shape[0]), 1 / 100, device="cuda", requires_grad=True))
+        self.growth_length_s = nn.Parameter(torch.full([fused_point_cloud.shape[0]], 1 / 100, device="cuda", requires_grad=True))
 
     def training_setup(self, training_args):
         print('training setup')
