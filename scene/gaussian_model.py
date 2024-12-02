@@ -494,7 +494,7 @@ class GaussianModel ():
         print(self.calc_growth_dir().size())
         print('dist')
         print(self.calc_growth_dist().size()) """
-        togrow = torch.matmul(self.calc_growth_dist(), self.calc_growth_dir())
+        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
         print(self._xyz[selected_pts_mask])
         print('togrow size')
         print(togrow.size())
