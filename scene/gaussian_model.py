@@ -499,7 +499,10 @@ class GaussianModel ():
         print(togrow.size())
         print('scaling')
         print(self._scaling.size())
-        new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
+        temp = togrow[selected_pts_mask]
+        print('temp')
+        print(temp)
+        new_xyz = self._xyz[selected_pts_mask] + temp
         #new_xyz = self._xyz[selected_pts_mask]
 
         new_features_dc = self._features_dc[selected_pts_mask]
