@@ -331,7 +331,7 @@ class GaussianModel:
         v_names = sorted(s_prime_names, key = lambda x: int(x.split('_')[-1]))
         v = np.zeros((xyz.shape[0], len(v_names)))
         for idx, attr_name in enumerate(v_names):
-            s_primes[:, idx] = np.asarray(plydata.elements[0][attr_name])
+            v[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
         self._xyz = nn.Parameter(torch.tensor(xyz, dtype=torch.float, device="cuda").requires_grad_(True))
         self._features_dc = nn.Parameter(torch.tensor(features_dc, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
