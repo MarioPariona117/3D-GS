@@ -188,6 +188,9 @@ class GaussianModel (torch.nn.Module):
         exposure = torch.eye(3, 4, device="cuda")[None].repeat(len(cam_infos), 1, 1)
         self._exposure = nn.Parameter(exposure.requires_grad_(True))
 
+        self.growth_xyz = nn.Parameter(torch.tensor([0.5,0.5,0.5], device='cuda').requires_grad_(True))
+        self.evol_clone_optimizer = torch.optim.Adam([self.growth_xyz], lr = 0.1, eps = 1e-15)
+
     def training_setup(self, training_args):
         print('training setup')
         self.percent_dense = training_args.percent_dense
