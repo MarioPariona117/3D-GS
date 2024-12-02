@@ -183,7 +183,7 @@ class GaussianModel ():
         
         print(fused_point_cloud.shape[0])
         self.initialize_growth_directions(fused_point_cloud.shape[0])
-        self.growth_length_s = nn.Parameter(torch.full([1, fused_point_cloud.shape[0]], 1 / 100, device="cuda", requires_grad=True))
+        self.growth_length_s = nn.Parameter(torch.full([fused_point_cloud.shape[0], 1], 1 / 100, device="cuda", requires_grad=True))
 
     def training_setup(self, training_args):
         print('training setup')
@@ -491,10 +491,10 @@ class GaussianModel ():
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
         print('dist')
-        print(self.calc_growth_dist().T.size())
+        print(self.calc_growth_dist().size())
         print('dir')
         print(self.calc_growth_dir().size())
-        togrow = torch.mul(self.calc_growth_dist().T, self.calc_growth_dir())
+        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
         print('togrow')
         print(togrow.size())
         print('scaling')
