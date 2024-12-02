@@ -499,7 +499,7 @@ class GaussianModel ():
         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter,:2], dim=-1, keepdim=True)
         self.denom[update_filter] += 1
 
-    def initialize_growth_directions (self, point_cloud_size):
+    def initialize_growth_directions (self):
         self.growth_directions = torch.rand(self.growth_directions_count, 3, device="cuda")
         self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
 
