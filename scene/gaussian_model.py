@@ -494,8 +494,8 @@ class GaussianModel ():
         print(self.calc_growth_dir().size())
         print('dist')
         print(self.calc_growth_dist().size())
-
-        new_xyz = self._xyz[selected_pts_mask] + torch.matmul(self.calc_growth_dist(), self.calc_growth_dir())[selected_pts_mask]
+        togrow = torch.matmul(self.calc_growth_dist(), self.calc_growth_dir())
+        new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
         #new_xyz = self._xyz[selected_pts_mask]
 
         new_features_dc = self._features_dc[selected_pts_mask]
