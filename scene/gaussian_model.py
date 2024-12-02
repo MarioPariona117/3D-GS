@@ -490,12 +490,14 @@ class GaussianModel ():
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
-        """ print('dist')
+        print('dist')
         print(self.calc_growth_dist().T.size())
         print('dir')
-        print(self.calc_growth_dir().size()) """
-        togrow = torch.mul(self.calc_growth_dist().T, self.calc_growth_dir()).unsqueeze(1)
+        print(self.calc_growth_dir().size())
+        togrow = torch.mul(self.calc_growth_dist().T, self.calc_growth_dir())
+        print('togrow')
         print(togrow.size())
+        print('scaling')
         print(self._scaling.size())
         new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
         #new_xyz = self._xyz[selected_pts_mask]
