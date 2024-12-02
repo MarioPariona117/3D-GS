@@ -235,14 +235,18 @@ class GaussianModel:
         l = ['x', 'y', 'z', 'nx', 'ny', 'nz']
         # All channels except the 3 DC
         for i in range(self._features_dc.shape[1]*self._features_dc.shape[2]):
-            l.append('f_dc_{}'.format(i))
+            l.append(f'f_dc_{i}')
         for i in range(self._features_rest.shape[1]*self._features_rest.shape[2]):
-            l.append('f_rest_{}'.format(i))
+            l.append(f'f_rest_{i}')
         l.append('opacity')
         for i in range(self._scaling.shape[1]):
-            l.append('scale_{}'.format(i))
+            l.append(f'scale_{i}')
         for i in range(self._rotation.shape[1]):
-            l.append('rot_{}'.format(i))
+            l.append(f'rot_{i}')
+        for i in range(self._s_prime.shape[1]):
+            l.append(f's_prime_{i}')
+        for i in range(self._v.shape[1]):
+            l.append(f'v_{i}')
         return l
 
     def save_ply(self, path):
@@ -384,6 +388,8 @@ class GaussianModel:
         self._opacity = optimizable_tensors["opacity"]
         self._scaling = optimizable_tensors["scaling"]
         self._rotation = optimizable_tensors["rotation"]
+        self._s_prime = optimizable_tensors["s_prime"]
+        self._v = optimizable_tensors["v"]
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
 
@@ -416,18 +422,15 @@ class GaussianModel:
 
         return optimizable_tensors
 
-    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime=None, new_v=None):
+    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v):
         d = {"xyz": new_xyz,
         "f_dc": new_features_dc,
         "f_rest": new_features_rest,
         "opacity": new_opacities,
         "scaling" : new_scaling,
-        "rotation" : new_rotation}
-
-        if new_s_prime is not None:
-            d["s_prime"] = new_s_prime
-        if new_v is not None:
-            d["v"] = new_v
+        "rotation" : new_rotation,
+        "s_prime": new_s_prime,
+        "v": new_v}
 
         optimizable_tensors = self.cat_tensors_to_optimizer(d)
         self._xyz = optimizable_tensors["xyz"]
@@ -437,13 +440,8 @@ class GaussianModel:
         self._scaling = optimizable_tensors["scaling"]
         self._rotation = optimizable_tensors["rotation"]
 
-        if new_s_prime is not None:
-            self._s_prime = optimizable_tensors["s_prime"]
-            d["s_prime"] = new_s_prime
-
-        if new_v is not None:
-            self._v = optimizable_tensors["v"]
-            d["v"] = new_v
+        self._s_prime = optimizable_tensors["s_prime"]
+        self._v = optimizable_tensors["v"]
             
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))
         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
@@ -456,10 +454,11 @@ class GaussianModel:
         rots = build_rotation(self._rotation[selected_pts_mask]).repeat(N,1,1)
         delta_mu = torch.bmm(
             rots,
-            stds * (1 / (1 + torch.exp(-self._s_prime))).unsqueeze(-1)
+            (stds * (1 / (1 + torch.exp(-self._s_prime[selected_pts_mask]))).repeat(N, 1)).unsqueeze(-1)
         ).squeeze(1)
     
         delta_mu[::2] *= -1
+
         return delta_mu
 
     def densify_and_split(self, grads, grad_threshold, scene_extent, N=2):
@@ -477,7 +476,12 @@ class GaussianModel:
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values > self.percent_dense*scene_extent)
 
-        new_xyz = self.del_mu(selected_pts_mask, N) + self.get_xyz[selected_pts_mask].repeat(N, 1)
+        delta_mu = self.del_mu(selected_pts_mask, N).squeeze(-1)
+        # print(delta_mu.shape)
+        xyz = self.get_xyz[selected_pts_mask].repeat(N, 1)
+        # print(xyz.shape)
+        # new_xyz = self.del_mu(selected_pts_mask, N) + self.get_xyz[selected_pts_mask].repeat(N, 1)
+        new_xyz = delta_mu + xyz
 
         new_v = self._v[selected_pts_mask].repeat(N, 1)
         phi = 1.2 * (1/(1 + torch.exp(new_v))) + 1
@@ -510,8 +514,10 @@ class GaussianModel:
         new_rotation = self._rotation[selected_pts_mask]
 
         new_tmp_radii = self.tmp_radii[selected_pts_mask]
+        new_s_prime = self._s_prime[selected_pts_mask]
+        new_v = self._v[selected_pts_mask]
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii)
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v)
 
     def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii):
         grads = self.xyz_gradient_accum / self.denom
