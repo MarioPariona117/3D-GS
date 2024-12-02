@@ -183,6 +183,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                     gaussians.optimizer.zero_grad(set_to_none = True)
                 else:
                     gaussians.optimizer.step()
+                    for param_group in gaussians.optimizer.param_groups:
+                        if (param_group['name'] == 's_prime' or param_group['name'] == 'v') and not (param_group['params'][0].grad is None):
+                            print(param_group['name'])
+                            print(param_group['params'][0])
+                            print(param_group['params'][0].grad)
                     gaussians.optimizer.zero_grad(set_to_none = True)
 
             if (iteration in checkpoint_iterations):
