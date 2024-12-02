@@ -490,7 +490,9 @@ class GaussianModel ():
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
+        print('dir')
         print(self.calc_growth_dir().size())
+        print('dist')
         print(self.calc_growth_dist().size())
 
         new_xyz = self._xyz[selected_pts_mask] + torch.matmul(self.calc_growth_dist(), self.calc_growth_dir())[selected_pts_mask]
