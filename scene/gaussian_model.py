@@ -152,7 +152,7 @@ class GaussianModel ():
             self.active_sh_degree += 1
 
     def create_from_pcd(self, pcd : BasicPointCloud, cam_infos : int, spatial_lr_scale : float):
-        print('create from pcd')
+        #print('create from pcd')
         self.spatial_lr_scale = spatial_lr_scale
         fused_point_cloud = torch.tensor(np.asarray(pcd.points)).float().cuda()
         fused_color = RGB2SH(torch.tensor(np.asarray(pcd.colors)).float().cuda())
@@ -181,12 +181,12 @@ class GaussianModel ():
         exposure = torch.eye(3, 4, device="cuda")[None].repeat(len(cam_infos), 1, 1)
         self._exposure = nn.Parameter(exposure.requires_grad_(True))
         
-        print(fused_point_cloud.shape[0])
+        #print(fused_point_cloud.shape[0])
         self.initialize_growth_directions(fused_point_cloud.shape[0])
         self.growth_length_s = nn.Parameter(torch.full([fused_point_cloud.shape[0], 1], 1 / 100, device="cuda", requires_grad=True))
 
     def training_setup(self, training_args):
-        print('training setup')
+        #print('training setup')
         self.percent_dense = training_args.percent_dense
         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
         self.denom = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
@@ -285,7 +285,7 @@ class GaussianModel ():
         self._opacity = optimizable_tensors["opacity"]
 
     def load_ply(self, path, use_train_test_exp = False):
-        print('load_ply')
+        #print('load_ply')
         plydata = PlyData.read(path)
         if use_train_test_exp:
             exposure_file = os.path.join(os.path.dirname(path), os.pardir, os.pardir, "exposure.json")
@@ -467,9 +467,9 @@ class GaussianModel ():
         new_features_dc = self._features_dc[selected_pts_mask].repeat(N,1,1)
         new_features_rest = self._features_rest[selected_pts_mask].repeat(N,1,1)
         new_opacity = self._opacity[selected_pts_mask].repeat(N,1)
-        new_tmp_radii = self.tmp_radii[selected_pts_mask].repeat(N)
+        new_tmp_radii = self.tmp_radii[selected_pts_mask].repeat(N,1)
 
-        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N)
+        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N,1)
         new_growth_length_s = self.growth_length_s[selected_pts_mask].repeat(N)
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_growth_directions_probabilities, new_growth_length_s)
