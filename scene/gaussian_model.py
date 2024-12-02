@@ -490,7 +490,7 @@ class GaussianModel ():
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
-        togrow = torch.matmul(self.calc_growth_dist(), self.calc_growth_dir())
+        togrow = torch.mul(self.calc_growth_dist().T, self.calc_growth_dir())
         new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
         #new_xyz = self._xyz[selected_pts_mask]
 
@@ -556,9 +556,7 @@ class GaussianModel ():
         variance = torch.max(eigvals)
         sd = torch.sqrt(variance)
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
-        print(ret)
-        print(torch.diag_embed(ret))
-        return torch.diag_embed(ret)
+        return ret
     
     def get_actual_covariances (self, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
