@@ -429,14 +429,14 @@ class GaussianModel ():
 
         return optimizable_tensors
 
-    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_growth_direction_probabilities, new_growth_length_s):
+    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_growth_directions_probabilities, new_growth_length_s):
         d = {"xyz": new_xyz,
         "f_dc": new_features_dc,
         "f_rest": new_features_rest,
         "opacity": new_opacities,
         "scaling" : new_scaling,
         "rotation" : new_rotation,
-        'growth_direction_probabilities' : new_growth_direction_probabilities,
+        'growth_directions_probabilities' : new_growth_directions_probabilities,
         'growth_length_s' : new_growth_length_s}
 
         optimizable_tensors = self.cat_tensors_to_optimizer(d)
@@ -476,10 +476,10 @@ class GaussianModel ():
         new_opacity = self._opacity[selected_pts_mask].repeat(N,1)
         new_tmp_radii = self.tmp_radii[selected_pts_mask].repeat(N)
 
-        new_growth_direction_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N)
+        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N)
         new_growth_length_s = self.growth_length_s[selected_pts_mask].repeat(N)
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_growth_direction_probabilities, new_growth_length_s)
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_growth_directions_probabilities, new_growth_length_s)
 
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
@@ -490,7 +490,7 @@ class GaussianModel ():
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
         
-        print('dist')
+        """ print('dist')
         print(self.calc_growth_dist().size())
         print('dir')
         print(self.calc_growth_dir().size())
@@ -503,9 +503,11 @@ class GaussianModel ():
         print('temp')
         print(temp.size())
         print('growth_length_s')
-        print(self.growth_length_s.size())
+        print(self.growth_length_s.size()) """
 
-        new_xyz = self._xyz[selected_pts_mask] + temp
+        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
+
+        new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
         #new_xyz = self._xyz[selected_pts_mask]
 
         new_features_dc = self._features_dc[selected_pts_mask]
@@ -516,10 +518,10 @@ class GaussianModel ():
 
         new_tmp_radii = self.tmp_radii[selected_pts_mask]
 
-        new_growth_direction_probabilities = self.growth_directions_probabilities[selected_pts_mask]
+        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_growth_direction_probabilities, new_growth_length_s)
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_growth_directions_probabilities, new_growth_length_s)
 
     def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii):
         grads = self.xyz_gradient_accum / self.denom
