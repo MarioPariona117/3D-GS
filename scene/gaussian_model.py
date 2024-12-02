@@ -501,7 +501,10 @@ class GaussianModel ():
         print(self._scaling.size())
         temp = togrow[selected_pts_mask]
         print('temp')
-        print(temp)
+        print(temp.size())
+        print('growth_length_s')
+        print(self.growth_length_s.size())
+
         new_xyz = self._xyz[selected_pts_mask] + temp
         #new_xyz = self._xyz[selected_pts_mask]
 
