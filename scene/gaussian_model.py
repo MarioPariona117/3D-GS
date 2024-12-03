@@ -541,7 +541,7 @@ class GaussianModel:
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
 
-    def densify_and_clone(self, grads, grad_threshold, scene_extent, eps=1e-3):
+    def densify_and_clone(self, grads, grad_threshold, scene_extent, eps=0.3):
         # Extract points that satisfy the gradient condition
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
@@ -609,7 +609,7 @@ class GaussianModel:
         self.growth_directions_probabilities = nn.Parameter(torch.full(
             [l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True)
         )
-        # nn.init.xavier_uniform_(self.growth_directions_probabilities)
+        nn.init.xavier_uniform_(self.growth_directions_probabilities)
 
     # def initialize_growth_directions (self, l):
     #     self.growth_directions = torch.rand([self.growth_directions_count, 3], device="cuda")
