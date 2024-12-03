@@ -499,6 +499,7 @@ class GaussianModel ():
         print(self.growth_length_s.size()) """
 
         togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
+        print(togrow[selected_pts_mask])
 
         new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
         #new_xyz = self._xyz[selected_pts_mask]
