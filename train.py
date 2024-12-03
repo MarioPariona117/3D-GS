@@ -139,7 +139,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         else:
             Ll1depth = 0
 
-        loss.backward()
+        loss.backward(retain_graph = True)
 
         iter_end.record()
 
@@ -272,6 +272,8 @@ if __name__ == "__main__":
 
     op.s_prime_lr = args.s_prime_lr
     op.v_lr = args.v_lr
+    op.growth_lr = args.growth_lr
+    op.growth_length_lr = args.growth_length_lr
 
     print("Optimizing " + args.model_path)
 

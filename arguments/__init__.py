@@ -87,8 +87,10 @@ class OptimizationParams(ParamGroup):
         self.exposure_lr_delay_steps = 0
         self.exposure_lr_delay_mult = 0.0
 
-        self.s_prime_lr = 0.0015
-        self.v_lr = 0.0015
+        self.s_prime_lr = 0.0011
+        self.v_lr = 0.0011
+        self.growth_lr = 0.001
+        self.growth_length_lr = 0.001
 
         self.percent_dense = 0.01
         self.lambda_dssim = 0.2

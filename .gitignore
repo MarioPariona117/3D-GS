@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.pyc
 .vscode
 output
@@ -13,3 +14,18 @@ db/*
 tandt_db.zip
 saved_output/*
 nohup.out
+=======
+*.pyc
+.vscode
+output
+build
+diff_rasterization/diff_rast.egg-info
+diff_rasterization/dist
+tensorboard_3d
+screenshots
+
+venv
+tandt/*
+db/*
+tandt_db.zip
+>>>>>>> elacs_evolutive_clone
