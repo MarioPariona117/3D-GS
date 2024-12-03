@@ -141,11 +141,12 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         else:
             Ll1depth = 0
 
-        loss.backward()
+        loss.backward(retain_graph=True)
 
-        """ from torchviz import make_dot
-        dot = make_dot(loss, params=dict(gaussians.named_parameters()), show_attrs=True, show_saved=True)
-        dot.render("model_visualization", format="pdf") """
+        from torchviz import make_dot
+        if iteration % opt.densification_interval == 1:
+            dot = make_dot(loss, params=dict(gaussians.named_parameters()), show_attrs=True, show_saved=True)
+            dot.render("model_visualization", format="pdf")
 
 
         iter_end.record()
