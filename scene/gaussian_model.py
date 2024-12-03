@@ -556,10 +556,10 @@ class GaussianModel ():
         variance = torch.max(eigvals, dim = 1)[0]
         """ print('variance')
         print(variance.size()) """
-        sd = torch.sqrt(variance)
+        sd = torch.sqrt(variance).unsqueeze(1)
         """ print('sd')
         print(sd.size()) """
-        print((1 + torch.exp(- self.growth_length_s)).size())
+        #print((1 + torch.exp(- self.growth_length_s)).size())
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
         return ret / (10 ** 7)
         #return torch.ones(self.growth_length_s.size(), device='cuda')
