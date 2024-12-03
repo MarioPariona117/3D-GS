@@ -553,7 +553,7 @@ class GaussianModel ():
         print('eigvals')
         print(eigvals.size())
         eigvals = eigvals.type(torch.float)
-        variance = torch.max(eigvals, dim = 1)
+        variance = torch.max(eigvals, dim = 1)[0]
         print('variance')
         print(variance.size())
         sd = torch.sqrt(variance)
