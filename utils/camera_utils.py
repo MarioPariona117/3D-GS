@@ -68,8 +68,9 @@ def loadCam(args, id, cam_info, resolution_scale, is_nerf_synthetic, is_test_dat
 
 def cameraList_from_camInfos(cam_infos, resolution_scale, args, is_nerf_synthetic, is_test_dataset):
     camera_list = []
-
+    print(f"Loading {len(cam_infos)} cameras")
     for id, c in enumerate(cam_infos):
+        print(id)
         camera_list.append(loadCam(args, id, c, resolution_scale, is_nerf_synthetic, is_test_dataset))
 
     return camera_list
