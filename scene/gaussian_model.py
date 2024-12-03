@@ -198,7 +198,7 @@ class GaussianModel ():
             {'params': [self._opacity], 'lr': training_args.opacity_lr, "name": "opacity"},
             {'params': [self._scaling], 'lr': training_args.scaling_lr, "name": "scaling"},
             {'params': [self._rotation], 'lr': training_args.rotation_lr, "name": "rotation"},
-            {'params': [self.growth_directions_probabilities], 'lr': 0.001, "name": "growth_directions_probabilities"},
+            {'params': [self.growth_directions], 'lr': 0.001, "name": "growth_directions"},
             {'params': [self.growth_length_s], 'lr': 0.001, "name": "growth_length_s"}
         ]
 
@@ -251,8 +251,8 @@ class GaussianModel ():
         for i in range(self._rotation.shape[1]):
             l.append('rot_{}'.format(i))
 
-        for i in range(self.growth_directions_probabilities.shape[1]):
-            l.append('growth_directions_probabilities_{}'.format(i))
+        for i in range(self.growth_directions.shape[1]):
+            l.append('growth_directions_{}'.format(i))
         for i in range(self.growth_length_s.shape[1]):
             l.append('growth_length_s_{}'.format(i))
         return l
@@ -268,13 +268,13 @@ class GaussianModel ():
         scale = self._scaling.detach().cpu().numpy()
         rotation = self._rotation.detach().cpu().numpy()
 
-        growth_directions_probabilities = self.growth_directions_probabilities.detach().cpu().numpy()
+        growth_directions = self.growth_directions.detach().cpu().numpy()
         growth_length_s = self.growth_length_s.detach().cpu().numpy()
 
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
 
         elements = np.empty(xyz.shape[0], dtype=dtype_full)
-        attributes = np.concatenate((xyz, normals, f_dc, f_rest, opacities, scale, rotation, growth_directions_probabilities, growth_length_s), axis=1)
+        attributes = np.concatenate((xyz, normals, f_dc, f_rest, opacities, scale, rotation, growth_directions, growth_length_s), axis=1)
         elements[:] = list(map(tuple, attributes))
         el = PlyElement.describe(elements, 'vertex')
         PlyData([el]).write(path)
@@ -329,11 +329,11 @@ class GaussianModel ():
         for idx, attr_name in enumerate(rot_names):
             rots[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
-        growth_directions_probabilities_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_directions_probabilities")]
-        growth_directions_probabilities_names = sorted(growth_directions_probabilities_names, key = lambda x: int(x.split('_')[-1]))
-        growth_directions_probabilities = np.zeros((xyz.shape[0], len(growth_directions_probabilities_names)))
-        for idx, attr_name in enumerate(growth_directions_probabilities_names):
-            growth_directions_probabilities[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        growth_directions_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_directions")]
+        growth_directions_names = sorted(growth_directions_names, key = lambda x: int(x.split('_')[-1]))
+        growth_directions = np.zeros((xyz.shape[0], len(growth_directions_names)))
+        for idx, attr_name in enumerate(growth_directions_names):
+            growth_directions[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
         growth_length_s_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_length_s")]
         growth_length_s_names = sorted(growth_length_s_names, key = lambda x: int(x.split('_')[-1]))
@@ -348,7 +348,7 @@ class GaussianModel ():
         self._scaling = nn.Parameter(torch.tensor(scales, dtype=torch.float, device="cuda").requires_grad_(True))
         self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
 
-        self.growth_directions_probabilities = nn.Parameter(torch.tensor(growth_directions_probabilities, dtype=torch.float, device="cuda").requires_grad_(True))
+        self.growth_directions = nn.Parameter(torch.tensor(growth_directions, dtype=torch.float, device="cuda").requires_grad_(True))
         self.growth_length_s = nn.Parameter(torch.tensor(growth_length_s, dtype=torch.float, device="cuda").requires_grad_(True))
 
         self.active_sh_degree = self.max_sh_degree
@@ -394,7 +394,7 @@ class GaussianModel ():
         self._opacity = optimizable_tensors["opacity"]
         self._scaling = optimizable_tensors["scaling"]
         self._rotation = optimizable_tensors["rotation"]
-        self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
+        self.growth_directions = optimizable_tensors['growth_directions']
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
@@ -422,14 +422,14 @@ class GaussianModel ():
 
         return optimizable_tensors
 
-    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_growth_directions_probabilities, new_growth_length_s):
+    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_growth_directions, new_growth_length_s):
         d = {"xyz": new_xyz,
         "f_dc": new_features_dc,
         "f_rest": new_features_rest,
         "opacity": new_opacities,
         "scaling" : new_scaling,
         "rotation" : new_rotation,
-        'growth_directions_probabilities' : new_growth_directions_probabilities,
+        'growth_directions' : new_growth_directions,
         'growth_length_s' : new_growth_length_s}
 
         optimizable_tensors = self.cat_tensors_to_optimizer(d)
@@ -440,7 +440,7 @@ class GaussianModel ():
         self._scaling = optimizable_tensors["scaling"]
         self._rotation = optimizable_tensors["rotation"]
 
-        self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
+        self.growth_directions = optimizable_tensors['growth_directions']
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))
@@ -469,10 +469,10 @@ class GaussianModel ():
         new_opacity = self._opacity[selected_pts_mask].repeat(N,1)
         new_tmp_radii = self.tmp_radii[selected_pts_mask].repeat(N)
 
-        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N ,1)
+        new_growth_directions = self.growth_directions[selected_pts_mask].repeat(N ,1)
         new_growth_length_s = self.growth_length_s[selected_pts_mask].repeat(N, 1)
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_growth_directions_probabilities, new_growth_length_s)
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_growth_directions, new_growth_length_s)
 
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
@@ -497,10 +497,10 @@ class GaussianModel ():
 
         new_tmp_radii = self.tmp_radii[selected_pts_mask]
 
-        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
+        new_growth_directions = self.growth_directions[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_growth_directions_probabilities, new_growth_length_s)
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_growth_directions, new_growth_length_s)
 
     def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii):
         grads = self.xyz_gradient_accum / self.denom
@@ -526,21 +526,21 @@ class GaussianModel ():
         self.denom[update_filter] += 1
 
     def initialize_growth_directions (self, l):
-        self.growth_directions = torch.rand([self.growth_directions_count, 3], device="cuda")
-        self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
+        gd = torch.rand([l, 3], device="cuda")
+        gd = torch.nn.functional.normalize(gd, p = 1, dim = 1)
 
-        self.growth_directions_probabilities = nn.Parameter(torch.full([l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
+        self.growth_directions = nn.Parameter(gd.requires_grad_(True))
 
     """ def calc_growth_dir (self):
-        index_hard = torch.argmax(self.growth_directions_probabilities)
+        index_hard = torch.argmax(self.growth_directions)
         index_hard_one_hot = torch.nn.functional.one_hot(index_hard, num_classes = self.growth_directions_count).float()
         growth_direction = torch.matmul(index_hard_one_hot, self.growth_directions)
         return growth_direction """
     
     def calc_growth_dir (self):
-        index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities, dim = 1)
-        growth_direction = torch.matmul(index_soft, self.growth_directions)
-        return growth_direction
+        """ index_soft = torch.nn.functional.softmax(self.growth_directions, dim = 1)
+        growth_direction = torch.matmul(index_soft, self.growth_directions) """
+        return self.growth_directions
     
     def calc_growth_dist (self):
         # v is 2 * maximum standard deviation of original gaussians
