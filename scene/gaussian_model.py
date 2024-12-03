@@ -541,7 +541,7 @@ class GaussianModel:
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
 
-    def densify_and_clone(self, grads, grad_threshold, scene_extent):
+    def densify_and_clone(self, grads, grad_threshold, scene_extent, eps=1e-3):
         # Extract points that satisfy the gradient condition
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
@@ -549,9 +549,10 @@ class GaussianModel:
 
         growth_dist = self.calc_growth_dist(selected_pts_mask)
         differentiable_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
-        
         growth_dir_to_reparametrise = self.calc_growth_dir_repara(selected_pts_mask)
-        togrow = torch.mul(growth_dist, growth_dir_to_reparametrise)
+
+        reparameterised_dir = growth_dir_to_reparametrise * (1-eps) + differentiable_growth_dir * eps
+        togrow = torch.mul(growth_dist, reparameterised_dir)
 
         new_xyz = self._xyz[selected_pts_mask] + togrow
 
@@ -565,7 +566,7 @@ class GaussianModel:
         new_s_prime = self._s_prime[selected_pts_mask]
         new_v = self._v[selected_pts_mask]
 
-        new_growth_directions_probabilities = differentiable_growth_dir
+        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s)
@@ -618,8 +619,7 @@ class GaussianModel:
 
     def calc_growth_dir_soft(self, selected_pts_mask):
         index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities[selected_pts_mask], dim = 1)
-        growth_direction = torch.matmul(index_soft, self.growth_directions)
-        return growth_direction
+        return torch.matmul(index_soft, self.growth_directions)
 
     def calc_growth_dir_repara(self, selected_pts_mask):
         index = torch.argmax(self.growth_directions_probabilities[selected_pts_mask], dim=1)
