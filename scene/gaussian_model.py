@@ -566,7 +566,7 @@ class GaussianModel ():
         sd = torch.sqrt(variance)
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
         return ret """
-        return torch.ones(self.growth_length_s.size())
+        return torch.ones(self.growth_length_s.size(), device='cuda')
     
     def get_actual_covariances (self, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
