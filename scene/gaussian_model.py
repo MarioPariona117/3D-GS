@@ -488,6 +488,7 @@ class GaussianModel ():
 
         #new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
         new_xyz = self._xyz[selected_pts_mask] + self.growth_directions[selected_pts_mask] / (10 ** 7)
+        print(self.growth_directions[selected_pts_mask] / (10 ** 7))
 
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
