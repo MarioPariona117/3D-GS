@@ -502,15 +502,12 @@ class GaussianModel:
 
         return delta_mu
 
-    def densify_and_split(self, grads, grad_threshold, scene_extent, N=2, differentiable=True):
+    def densify_and_split(self, grads, grad_threshold, scene_extent, N=2):
         # Split using mu +- del(mu)
         # 𝛿𝜇𝑘 =𝑅(𝜎𝑘∗(1/1+𝑒𝑥𝑝(−𝑠′)))
         # where s' is the learned parameter
         # also learn scaling factor and divide each newly split Gaussian by phi
         # 𝜙 =1.2∗(1/1+𝑒𝑥𝑝(−𝑣))+1
-
-        if not differentiable:
-            return
 
         n_init_points = self.get_xyz.shape[0]
         # Extract points that satisfy the gradient condition
@@ -544,15 +541,19 @@ class GaussianModel:
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
 
-    def densify_and_clone(self, grads, grad_threshold, scene_extent, soft=False):
+    def densify_and_clone(self, grads, grad_threshold, scene_extent):
         # Extract points that satisfy the gradient condition
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
 
-        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir(soft))
+        growth_dist = self.calc_growth_dist(selected_pts_mask)
+        differentiable_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
+        
+        growth_dir_to_reparametrise = self.calc_growth_dir_repara(selected_pts_mask)
+        togrow = torch.mul(growth_dist, growth_dir_to_reparametrise)
 
-        new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
+        new_xyz = self._xyz[selected_pts_mask] + togrow
 
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
@@ -564,21 +565,18 @@ class GaussianModel:
         new_s_prime = self._s_prime[selected_pts_mask]
         new_v = self._v[selected_pts_mask]
 
-        new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
+        new_growth_directions_probabilities = differentiable_growth_dir
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
-
-        if not soft:
-            return
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s)
 
-    def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii, differentiable=False):
+    def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii):
         grads = self.xyz_gradient_accum / self.denom
         grads[grads.isnan()] = 0.0
 
         self.tmp_radii = radii
-        self.densify_and_clone(grads, max_grad, extent, differentiable)
-        self.densify_and_split(grads, max_grad, extent, differentiable)
+        self.densify_and_clone(grads, max_grad, extent)
+        self.densify_and_split(grads, max_grad, extent)
 
         prune_mask = (self.get_opacity < min_opacity).squeeze()
         if max_screen_size:
@@ -610,42 +608,36 @@ class GaussianModel:
         self.growth_directions_probabilities = nn.Parameter(torch.full(
             [l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True)
         )
-        nn.init.xavier_uniform_(self.growth_directions_probabilities)
+        # nn.init.xavier_uniform_(self.growth_directions_probabilities)
 
     # def initialize_growth_directions (self, l):
     #     self.growth_directions = torch.rand([self.growth_directions_count, 3], device="cuda")
     #     self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
 
     #     self.growth_directions_probabilities = nn.Parameter(torch.full([l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
-    
-    def calc_growth_dir(self, soft: bool):
-        if soft:
-            return self.calc_growth_dir_soft()
-        else:
-            return self.calc_growth_dir_repara()
 
-    def calc_growth_dir_soft(self):
-        index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities, dim = 1)
+    def calc_growth_dir_soft(self, selected_pts_mask):
+        index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities[selected_pts_mask], dim = 1)
         growth_direction = torch.matmul(index_soft, self.growth_directions)
         return growth_direction
 
-    def calc_growth_dir_repara(self):
-        index = torch.argmax(self.growth_directions_probabilities, dim=1)
+    def calc_growth_dir_repara(self, selected_pts_mask):
+        index = torch.argmax(self.growth_directions_probabilities[selected_pts_mask], dim=1)
         index_hard = torch.nn.functional.one_hot(index, num_classes=self.growth_directions.shape[0]).to(self.growth_directions.device)
 
-        return torch.matmul(index_hard.float(), self.growth_directions) / torch.matmul(index_hard, self.growth_length_s)
+        return torch.matmul(index_hard.float(), self.growth_directions) / self.growth_length_s[selected_pts_mask]
     
-    def calc_growth_dist (self):
+    def calc_growth_dist (self, selected_pts_mask):
         # v is 2 * maximum standard deviation of original gaussians
         # max variance = max eigenvalue of covariance matrix
-        covariances = self.get_actual_covariances()
+        covariances = self.get_actual_covariances(selected_pts_mask)
         eigvals = torch.linalg.eigvals(covariances)
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals)
         sd = torch.sqrt(variance)
-        ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
+        ret = 2 * sd / (1 + torch.exp(- self.growth_length_s[selected_pts_mask]))
         return ret
     
-    def get_actual_covariances (self, scaling_modifier = 1):
-        L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
+    def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
+        L = build_scaling_rotation(scaling_modifier * self.get_scaling[selected_pts_mask], self._rotation[selected_pts_mask])
         return L @ L.transpose(1, 2)
