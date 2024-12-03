@@ -29,7 +29,7 @@ try:
 except:
     pass
 
-class GaussianModel ():
+class GaussianModel:
 
     def setup_functions(self):
         def build_covariance_from_scaling_rotation(scaling, scaling_modifier, rotation):
@@ -152,7 +152,6 @@ class GaussianModel ():
             self.active_sh_degree += 1
 
     def create_from_pcd(self, pcd : BasicPointCloud, cam_infos : int, spatial_lr_scale : float):
-        #print('create from pcd')
         self.spatial_lr_scale = spatial_lr_scale
         fused_point_cloud = torch.tensor(np.asarray(pcd.points)).float().cuda()
         fused_color = RGB2SH(torch.tensor(np.asarray(pcd.colors)).float().cuda())
@@ -217,7 +216,6 @@ class GaussianModel ():
         elif self.optimizer_type == "sparse_adam":
             try:
                 self.optimizer = SparseGaussianAdam(l, lr=0.0, eps=1e-15)
-                #print('using sparse adam')
             except:
                 # A special version of the rasterizer is required to enable sparse adam
                 self.optimizer = optim.Adam(l, lr=0.0, eps=1e-15)
@@ -264,9 +262,9 @@ class GaussianModel ():
             l.append(f'v_{i}')
 
         for i in range(self.growth_directions_probabilities.shape[1]):
-            l.append('growth_directions_probabilities_{}'.format(i))
+            l.append(f'growth_directions_probabilities_{i}')
         for i in range(self.growth_length_s.shape[1]):
-            l.append('growth_length_s_{}'.format(i))
+            l.append(f'growth_length_s_{i}')
         return l
 
     def save_ply(self, path):
@@ -301,7 +299,6 @@ class GaussianModel ():
         self._opacity = optimizable_tensors["opacity"]
 
     def load_ply(self, path, use_train_test_exp = False):
-        #print('load_ply')
         plydata = PlyData.read(path)
         if use_train_test_exp:
             exposure_file = os.path.join(os.path.dirname(path), os.pardir, os.pardir, "exposure.json")
@@ -521,17 +518,14 @@ class GaussianModel ():
                                               torch.max(self.get_scaling, dim=1).values > self.percent_dense*scene_extent)
 
         delta_mu = self.del_mu(selected_pts_mask, N).squeeze(-1)
-        # print(delta_mu.shape)
         xyz = self.get_xyz[selected_pts_mask].repeat(N, 1)
-        # print(xyz.shape)
-        # new_xyz = self.del_mu(selected_pts_mask, N) + self.get_xyz[selected_pts_mask].repeat(N, 1)
         new_xyz = delta_mu + xyz
 
         new_v = self._v[selected_pts_mask].repeat(N, 1)
         phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
         new_scaling = self.scaling_inverse_activation(self.get_scaling[selected_pts_mask].repeat(N,1) / phi)
 
-        # maintain rotation, features, opacity, radii
+        # maintain rotation, features, opacity, radii, s_prime
         new_rotation = self._rotation[selected_pts_mask].repeat(N,1)
         new_features_dc = self._features_dc[selected_pts_mask].repeat(N,1,1)
         new_features_rest = self._features_rest[selected_pts_mask].repeat(N,1,1)
@@ -552,26 +546,10 @@ class GaussianModel ():
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
-        
-        """ print('dist')
-        print(self.calc_growth_dist().size())
-        print('dir')
-        print(self.calc_growth_dir().size())
-        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
-        print('togrow')
-        print(togrow.size())
-        print('scaling')
-        print(self._scaling.size())
-        temp = togrow[selected_pts_mask]
-        print('temp')
-        print(temp.size())
-        print('growth_length_s')
-        print(self.growth_length_s.size()) """
 
         togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
 
         new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
-        #new_xyz = self._xyz[selected_pts_mask]
 
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
