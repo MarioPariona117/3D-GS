@@ -559,13 +559,14 @@ class GaussianModel ():
     def calc_growth_dist (self):
         # v is 2 * maximum standard deviation of original gaussians
         # max variance = max eigenvalue of covariance matrix
-        covariances = self.get_actual_covariances()
+        """ covariances = self.get_actual_covariances()
         eigvals = torch.linalg.eigvals(covariances)
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals)
         sd = torch.sqrt(variance)
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
-        return ret
+        return ret """
+        return torch.ones(self.growth_length_s.size())
     
     def get_actual_covariances (self, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
