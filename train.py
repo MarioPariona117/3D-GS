@@ -102,6 +102,18 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         viewpoint_cam = viewpoint_stack.pop(rand_idx)
         vind = viewpoint_indices.pop(rand_idx)
 
+        # Densification
+        if iteration < opt.densify_until_iter:
+            # Keep track of max radii in image-space for pruning
+            gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
+            gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
+            if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
+                size_threshold = 20 if iteration > opt.opacity_reset_interval else None
+                gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii)
+            
+            if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
+                gaussians.reset_opacity()
+
         # Render
         if (iteration - 1) == debug_from:
             pipe.debug = True
@@ -167,7 +179,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         if (iteration in saving_iterations):
             print("\n[ITER {}] Saving Gaussians".format(iteration))
             scene.save(iteration)
-        # Densification
+        """ # Densification
         if iteration < opt.densify_until_iter:
             # Keep track of max radii in image-space for pruning
             gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
@@ -175,14 +187,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                 size_threshold = 20 if iteration > opt.opacity_reset_interval else None
                 gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii)
-                """ print('growth_directions_probablities:')
-                print(gaussians.growth_directions_probabilities)
-                print('growth_length_s:')
-                print(gaussians.growth_length_s)
-                print('\n') """
             
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
-                gaussians.reset_opacity()
+                gaussians.reset_opacity() """
         # Optimizer step
         if iteration < opt.iterations:
             
