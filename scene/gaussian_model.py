@@ -541,13 +541,13 @@ class GaussianModel:
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
 
-    def densify_and_clone(self, grads, grad_threshold, scene_extent):
+    def densify_and_clone(self, grads, grad_threshold, scene_extent, soft=False):
         # Extract points that satisfy the gradient condition
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
 
-        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
+        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir(soft))
 
         new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
 
@@ -588,22 +588,46 @@ class GaussianModel:
         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter,:2], dim=-1, keepdim=True)
         self.denom[update_filter] += 1
 
-    def initialize_growth_directions (self, l):
-        self.growth_directions = torch.rand([self.growth_directions_count, 3], device="cuda")
-        self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
+    def initialize_growth_directions(self, l):
+        # Uniform set of discrete growth directions
+        phi = torch.linspace(0, 2 * np.pi, self.growth_directions_count, device="cuda")  # Azimuthal angle
+        theta = torch.acos(2 * torch.linspace(0, 1, self.growth_directions_count, device="cuda") - 1)  # Polar angle
+        
+        x = torch.sin(theta) * torch.cos(phi)
+        y = torch.sin(theta) * torch.sin(phi)
+        z = torch.cos(theta)
+        
+        self.growth_directions = torch.stack((x, y, z), dim=1)
+        self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p=2, dim=1)
 
-        self.growth_directions_probabilities = nn.Parameter(torch.full([l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
+        # Initialise growth probabilities uniformly
+        self.growth_directions_probabilities = nn.Parameter(torch.full(
+            [l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True)
+        )
+        nn.init.xavier_uniform_(self.growth_directions_probabilities)
 
-    """ def calc_growth_dir (self):
-        index_hard = torch.argmax(self.growth_directions_probabilities)
-        index_hard_one_hot = torch.nn.functional.one_hot(index_hard, num_classes = self.growth_directions_count).float()
-        growth_direction = torch.matmul(index_hard_one_hot, self.growth_directions)
-        return growth_direction """
+    # def initialize_growth_directions (self, l):
+    #     self.growth_directions = torch.rand([self.growth_directions_count, 3], device="cuda")
+    #     self.growth_directions = torch.nn.functional.normalize(self.growth_directions, p = 1, dim = 1)
+
+    #     self.growth_directions_probabilities = nn.Parameter(torch.full([l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
     
-    def calc_growth_dir (self):
+    def calc_growth_dir(self, soft: bool):
+        if soft:
+            return self.calc_growth_dir_soft()
+        else:
+            return self.calc_growth_dir_repara()
+
+    def calc_growth_dir_soft(self):
         index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities, dim = 1)
         growth_direction = torch.matmul(index_soft, self.growth_directions)
         return growth_direction
+
+    def calc_growth_dir_repara(self):
+        index = torch.argmax(self.growth_directions_probabilities, dim=1)
+        index_hard = torch.nn.functional.one_hot(index, num_classes=self.growth_directions.shape[0]).to(self.growth_directions.device)
+
+        return torch.matmul(index_hard.float(), self.growth_directions) / torch.matmul(index_hard, self.growth_length_s)
     
     def calc_growth_dist (self):
         # v is 2 * maximum standard deviation of original gaussians
