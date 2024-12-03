@@ -482,21 +482,6 @@ class GaussianModel ():
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
-        
-        """ print('dist')
-        print(self.calc_growth_dist().size())
-        print('dir')
-        print(self.calc_growth_dir().size())
-        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
-        print('togrow')
-        print(togrow.size())
-        print('scaling')
-        print(self._scaling.size())
-        temp = togrow[selected_pts_mask]
-        print('temp')
-        print(temp.size())
-        print('growth_length_s')
-        print(self.growth_length_s.size()) """
 
         togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
         print(togrow[selected_pts_mask])
@@ -560,14 +545,14 @@ class GaussianModel ():
     def calc_growth_dist (self):
         # v is 2 * maximum standard deviation of original gaussians
         # max variance = max eigenvalue of covariance matrix
-        """ covariances = self.get_actual_covariances()
+        covariances = self.get_actual_covariances()
         eigvals = torch.linalg.eigvals(covariances)
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals)
         sd = torch.sqrt(variance)
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
-        return ret """
-        return torch.ones(self.growth_length_s.size(), device='cuda')
+        return ret
+        #return torch.ones(self.growth_length_s.size(), device='cuda')
     
     def get_actual_covariances (self, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
