@@ -547,6 +547,7 @@ class GaussianModel ():
         # v is 2 * maximum standard deviation of original gaussians
         # max variance = max eigenvalue of covariance matrix
         covariances = self.get_actual_covariances()
+        print(covariances.size())
         eigvals = torch.linalg.eigvals(covariances)
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals)
