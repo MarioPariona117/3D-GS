@@ -502,12 +502,15 @@ class GaussianModel:
 
         return delta_mu
 
-    def densify_and_split(self, grads, grad_threshold, scene_extent, N=2):
+    def densify_and_split(self, grads, grad_threshold, scene_extent, N=2, differentiable=True):
         # Split using mu +- del(mu)
         # 𝛿𝜇𝑘 =𝑅(𝜎𝑘∗(1/1+𝑒𝑥𝑝(−𝑠′)))
         # where s' is the learned parameter
         # also learn scaling factor and divide each newly split Gaussian by phi
         # 𝜙 =1.2∗(1/1+𝑒𝑥𝑝(−𝑣))+1
+
+        if not differentiable:
+            return
 
         n_init_points = self.get_xyz.shape[0]
         # Extract points that satisfy the gradient condition
@@ -564,15 +567,18 @@ class GaussianModel:
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
+        if not soft:
+            return
+
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s)
 
-    def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii):
+    def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii, differentiable=False):
         grads = self.xyz_gradient_accum / self.denom
         grads[grads.isnan()] = 0.0
 
         self.tmp_radii = radii
-        self.densify_and_clone(grads, max_grad, extent)
-        self.densify_and_split(grads, max_grad, extent)
+        self.densify_and_clone(grads, max_grad, extent, differentiable)
+        self.densify_and_split(grads, max_grad, extent, differentiable)
 
         prune_mask = (self.get_opacity < min_opacity).squeeze()
         if max_screen_size:
