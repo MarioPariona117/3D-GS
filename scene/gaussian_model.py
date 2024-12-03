@@ -483,12 +483,12 @@ class GaussianModel ():
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
 
-        #togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
+        togrow = torch.mul(self.calc_growth_dist(), self.calc_growth_dir())
         #print(togrow[selected_pts_mask])
 
-        #new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
-        new_xyz = self._xyz[selected_pts_mask] + self.growth_directions[selected_pts_mask] / (10 ** 7)
-        print(self.growth_directions[selected_pts_mask] / (10 ** 7))
+        new_xyz = self._xyz[selected_pts_mask] + togrow[selected_pts_mask]
+        #new_xyz = self._xyz[selected_pts_mask] + self.growth_directions[selected_pts_mask] / (10 ** 7)
+        #print(self.growth_directions)
 
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
@@ -552,7 +552,7 @@ class GaussianModel ():
         variance = torch.max(eigvals)
         sd = torch.sqrt(variance)
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
-        return ret / (10 ** 8)
+        return ret / (10 ** 7)
         #return torch.ones(self.growth_length_s.size(), device='cuda')
     
     def get_actual_covariances (self, scaling_modifier = 1):
