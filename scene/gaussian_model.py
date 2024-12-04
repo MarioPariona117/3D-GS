@@ -540,7 +540,7 @@ class GaussianModel:
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N ,1)
         new_growth_length_s = self.growth_length_s[selected_pts_mask].repeat(N, 1)
 
-        new_newly_cloned = torch.ones([new_rotation.size(), 1], device = "cuda")
+        new_newly_cloned = torch.ones(new_rotation.size(), device = "cuda")
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_cloned)
 
@@ -562,7 +562,7 @@ class GaussianModel:
 
         togrow_sum = torch.sum(togrow)
         togrow_sum.backward()
-        print(torch.max(self.growth_directions_probabilities.grad))
+        print(self.growth_directions_probabilities.grad.size())
 
         new_xyz = self._xyz[selected_pts_mask] + togrow
 
@@ -579,7 +579,7 @@ class GaussianModel:
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
-        new_newly_cloned = torch.ones([new_rotation.size(), 1], device = "cuda")
+        new_newly_cloned = torch.ones(new_rotation.size(), device = "cuda")
 
         self.just_cloned_from = selected_pts_mask
 
