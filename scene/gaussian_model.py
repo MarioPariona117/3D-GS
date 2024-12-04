@@ -680,7 +680,10 @@ class GaussianModel:
         return ret
     
     def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
-        L = build_scaling_rotation(scaling_modifier * self.get_scaling[selected_pts_mask], self._rotation[selected_pts_mask])
+        selected_scaling = torch.mul(self.get_scaling, selected_pts_mask)
+        selected_rotation = torch.mul(self._rotation, selected_pts_mask)
+        
+        L = build_scaling_rotation(scaling_modifier * selected_scaling, selected_rotation)
         return L @ L.transpose(1, 2)
     
     """ def calc_evolutive_density_control_param_grads (self):
