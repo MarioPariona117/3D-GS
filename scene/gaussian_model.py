@@ -562,10 +562,10 @@ class GaussianModel ():
         covariances = self.get_actual_covariances()
         eigvals = torch.linalg.eigvals(covariances)
         eigvals = eigvals.type(torch.float)
-        variance = torch.max(eigvals)
-        sd = torch.sqrt(variance)
-        ret = 2 * sd / (1 + torch.exp(- self.growth_length_s))
-        return ret
+        variance = torch.max(eigvals, dim = 1)[0]
+        sd = torch.sqrt(variance).unsqueeze(1)
+        ret = 2 * sd / (1 + torch.exp(- self._growth_length_s))
+        return ret / (10 ** 7)
     
     def get_actual_covariances (self, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling, self._rotation)
