@@ -1,0 +1,9 @@
+{
+    "results": [
+        {"scene": "Stump", "psnr": 28.5, "ssim": 0.92, "lpips": 0.15},
+        {"scene": "Counter", "psnr": 27.8, "ssim": 0.90, "lpips": 0.18},
+        {"scene": "Playroom", "psnr": 29.2, "ssim": 0.93, "lpips": 0.14},
+        {"scene": "Horns", "psnr": 26.7, "ssim": 0.89, "lpips": 0.20},
+        {"scene": "T-rex", "psnr": 27.5, "ssim": 0.91, "lpips": 0.17}
+    ]
+}
