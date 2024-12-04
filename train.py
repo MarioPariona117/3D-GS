@@ -144,8 +144,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         loss.backward(retain_graph = True)
 
         from torchviz import make_dot
-        dot = make_dot(gaussians._xyz.mean(), params=dict(gaussians.named_parameters()), show_attrs=True, show_saved=True)
-        dot.render("model_visualization", format="pdf")
+        if iteration == 601:
+            dot = make_dot(gaussians._xyz.mean(), params=dict(gaussians.named_parameters()), show_attrs=True, show_saved=True)
+            dot.render("model_visualization", format="pdf")
 
 
         iter_end.record()
