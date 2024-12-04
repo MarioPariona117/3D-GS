@@ -95,7 +95,7 @@ if not args.skip_training:
     llff_timing = (time.time() - start_time) / 60.0
 
 with open(os.path.join(args.output_path,"timing.txt"), 'w') as file:
-    file.write(f"m360: {m360_timing} minutes \n tandt: {tandt_timing} minutes \n db: {db_timing} minutes\n")
+    file.write(f"m360: {m360_timing} minutes \ntandt: {tandt_timing} minutes \ndb: {db_timing} minutes\nllff: {llff_timing} minutes\n")
 
 if not args.skip_rendering:
     all_sources = []
