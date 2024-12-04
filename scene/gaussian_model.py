@@ -650,7 +650,7 @@ class GaussianModel:
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals, dim = 1)[0]
         sd = torch.sqrt(variance).unsqueeze(1)
-        ret = 2 * sd / (1 + torch.exp(- self._growth_length_s))
+        ret = 2 * sd / (1 + torch.exp(- self.growth_length_s[selected_pts_mask]))
         return ret
     
     def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
