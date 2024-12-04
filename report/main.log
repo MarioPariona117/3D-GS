@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.10.25)  4 DEC 2024 23:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.10.25)  4 DEC 2024 23:38
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -488,30 +488,6 @@ Package pdftex.def Info: ../o-3dgs/eval/trex/test/ours_30000/renders/00000.png  
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-/Users/mario/Documents/proj/cam/3D-GS/gaussian-splatting/report/main.tex:178: Missing $ inserted.
-<inserted text> 
-                $
-l.178 }
-       
-I've inserted a begin-math/end-math symbol since I think
-you left one out. Proceed, with fingers crossed.
-
-/Users/mario/Documents/proj/cam/3D-GS/gaussian-splatting/report/main.tex:178: Missing $ inserted.
-<inserted text> 
-                $
-l.178 }
-       
-I've inserted something that you may have forgotten.
-(See the <inserted text> above.)
-With luck, this will get me unwedged. But if you
-really didn't forget anything, try typing `2' now; then
-my insertion and my current dilemma will both disappear.
-
-
-Overfull \hbox (1.20937pt too wide) in paragraph at lines 178--179
-[]\OT1/cmr/m/n/12 from ../o-3dgs/eval/bicycle/results.json as x get x["ours$[]0000"]["\OML/cmm/m/it/12 PSNR\OT1/cmr/m/n/12 "]$ 
- []
-
 
 
 [5]
@@ -527,24 +503,20 @@ Chapter 3.
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-10-09>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 23890 strings out of 473577
- 626717 string characters out of 5728189
+ 23889 strings out of 473577
+ 626711 string characters out of 5728189
  1148137 words of memory out of 5000000
- 46458 multiletter control sequences out of 15000+600000
+ 46457 multiletter control sequences out of 15000+600000
  563574 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  96i,12n,101p,789b,609s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (8 pages, 13122338 bytes).
+</usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
+Output written on main.pdf (8 pages, 13113036 bytes).
 PDF statistics:
- 80 PDF objects out of 1000 (max. 8388607)
- 45 compressed objects within 1 object stream
+ 75 PDF objects out of 1000 (max. 8388607)
+ 42 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  63 words of extra memory for PDF output out of 10000 (max. 10000000)
 
