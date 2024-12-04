@@ -703,6 +703,7 @@ class GaussianModel:
         variance = torch.max(eigvals, dim = 1)[0]
         sd = torch.sqrt(variance).unsqueeze(1)
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s[selected_pts_mask]))
+        print(ret.mean())
         return ret
     
     def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
@@ -721,12 +722,12 @@ class GaussianModel:
 
         d_loss_d_growth_directions_probabilities[self.just_cloned_mask] = d_loss_d_xprime * self.d_togrow_x_d_growth_directions_probabilities + d_loss_d_yprime * self.d_togrow_y_d_growth_directions_probabilities + d_loss_d_zprime * self.d_togrow_z_d_growth_directions_probabilities
 
-        self.growth_directions_probabilities.grad = d_loss_d_growth_directions_probabilities
+        self.growth_directions_probabilities.grad = d_loss_d_growth_directions_probabilities * 10000
 
         d_loss_d_growth_length_s = torch.zeros((self._xyz.size()[0], 1), device = "cuda")
         d_loss_d_growth_length_s[self.just_cloned_mask] = d_loss_d_xprime * self.d_togrow_x_d_growth_length_s + d_loss_d_yprime * self.d_togrow_y_d_growth_length_s + d_loss_d_zprime * self.d_togrow_z_d_growth_length_s
 
-        self.growth_length_s.grad = d_loss_d_growth_length_s
+        self.growth_length_s.grad = d_loss_d_growth_length_s * 10000
 
 
     def normalize_growth_direction_probabilities (self):
