@@ -631,7 +631,7 @@ class GaussianModel:
         index_hard = torch.nn.functional.one_hot(index, num_classes=self.growth_directions.shape[0]).to(self.growth_directions.device)
         return torch.matmul(index_hard.float(), self.growth_directions) / growth_dist
     
-    def calc_growth_dist (self, selected_pts_mask):
+    """ def calc_growth_dist (self, selected_pts_mask):
         # v is 2 * maximum standard deviation of original gaussians
         # max variance = max eigenvalue of covariance matrix
         covariances = self.get_actual_covariances(selected_pts_mask)
@@ -640,6 +640,17 @@ class GaussianModel:
         variance = torch.max(eigvals)
         sd = torch.sqrt(variance)
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s[selected_pts_mask]))
+        return ret """
+    
+    def calc_growth_dist (self, selected_pts_mask):
+        # v is 2 * maximum standard deviation of original gaussians
+        # max variance = max eigenvalue of covariance matrix
+        covariances = self.get_actual_covariances(selected_pts_mask)
+        eigvals = torch.linalg.eigvals(covariances)
+        eigvals = eigvals.type(torch.float)
+        variance = torch.max(eigvals, dim = 1)[0]
+        sd = torch.sqrt(variance).unsqueeze(1)
+        ret = 2 * sd / (1 + torch.exp(- self._growth_length_s))
         return ret
     
     def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
