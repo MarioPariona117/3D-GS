@@ -580,7 +580,7 @@ class GaussianModel:
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
-        new_newly_cloned = self.clone_handle_gradients(togrow, new_rotation.size(), selected_pts_mask)
+        new_newly_cloned = self.clone_handle_gradients(togrow, new_rotation.size()[0], selected_pts_mask)
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_cloned)
 
