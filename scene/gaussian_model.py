@@ -650,11 +650,11 @@ class GaussianModel:
         ret = 2 * sd / (1 + torch.exp(- self.growth_length_s[selected_pts_mask]))
         return ret
     
-    """ def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
+    def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling[selected_pts_mask], self._rotation[selected_pts_mask])
         return L @ L.transpose(1, 2)
     
-    def calc_evolutive_density_control_param_grads (self):
+    """ def calc_evolutive_density_control_param_grads (self):
         self.calc_clone_grads()
         self._newly_cloned = torch.zeros(self._newly_cloned.size(), device = "cuda")
 
