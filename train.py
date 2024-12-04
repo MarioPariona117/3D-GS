@@ -154,6 +154,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth = render_and_calc_loss()
                 """ print(gaussians._xyz.grad)
                 print(gaussians.growth_directions_probabilities.grad) """
+
+                gaussians.calc_evolutive_density_control_param_grads()
+                print(gaussians.growth_directions_probabilities.grad)
+                print(gaussians.growth_length_s.grad)
+
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
 

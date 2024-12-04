@@ -612,7 +612,7 @@ class GaussianModel:
         self.growth_directions_probabilities.grad = None
         self.growth_length_s.grad = None
 
-        print(self.d_togrow_y_d_growth_directions_probabilities)
+        #print(self.d_togrow_y_d_growth_directions_probabilities)
 
         new_newly_cloned = torch.ones(newsize, device = "cuda", dtype = torch.bool)
 
