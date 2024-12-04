@@ -652,16 +652,16 @@ class GaussianModel:
     #     self.growth_directions_probabilities = nn.Parameter(torch.full([l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
 
     def calc_growth_dir_soft(self, selected_pts_mask):
-        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask)
+        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask.unsqueeze(1))
         index_soft = torch.nn.functional.softmax(selected_pts_growth_probabilities, dim = 1)
         return torch.matmul(index_soft, self.growth_directions)
 
     def calc_growth_dir_repara(self, selected_pts_mask):
-        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask)
+        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask.unsqueeze(1))
         index = torch.argmax(selected_pts_growth_probabilities, dim=1)
         index_hard = torch.nn.functional.one_hot(index, num_classes=self.growth_directions.shape[0]).to(self.growth_directions.device)
 
-        selected_pts_s = torch.mul(self.growth_length_s, selected_pts_mask)
+        selected_pts_s = torch.mul(self.growth_length_s, selected_pts_mask.unsqueeze(1))
 
         return torch.matmul(index_hard.float(), self.growth_directions) / selected_pts_s
     
