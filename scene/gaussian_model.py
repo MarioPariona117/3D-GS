@@ -188,6 +188,8 @@ class GaussianModel:
         self._s_prime = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
         self._v = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
 
+        self._newly_added = torch.zeros([fused_point_cloud.shape[0], 1], device = "cuda")
+
         # Xavier initialization (TODO: ablation test against uniform initialisation with grads)
         nn.init.xavier_uniform_(self._s_prime)
         nn.init.xavier_uniform_(self._v)
@@ -455,7 +457,7 @@ class GaussianModel:
 
         return optimizable_tensors
 
-    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s):
+    def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_added):
         d = {"xyz": new_xyz,
         "f_dc": new_features_dc,
         "f_rest": new_features_rest,
@@ -480,6 +482,8 @@ class GaussianModel:
             
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
         self.growth_length_s = optimizable_tensors['growth_length_s']
+
+        self._newly_added = torch.cat(self._newly_added, new_newly_added)
 
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))
         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
@@ -536,7 +540,9 @@ class GaussianModel:
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N ,1)
         new_growth_length_s = self.growth_length_s[selected_pts_mask].repeat(N, 1)
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s)
+        new_newly_added = torch.ones([new_rotation.size(), 1], device = "cuda")
+
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_added)
 
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
@@ -571,7 +577,9 @@ class GaussianModel:
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s)
+        new_newly_added = torch.ones([new_rotation.size(), 1], device = "cuda")
+
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_added)
 
     def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii):
         grads = self.xyz_gradient_accum / self.denom
@@ -643,3 +651,15 @@ class GaussianModel:
     def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
         L = build_scaling_rotation(scaling_modifier * self.get_scaling[selected_pts_mask], self._rotation[selected_pts_mask])
         return L @ L.transpose(1, 2)
+    
+    def calc_evolutive_density_control_param_grads (self):
+        self.calc_clone_grads()
+        self._newly_added = torch.zeros(self._newly_added.size(), device = "cuda")
+
+    def calc_clone_grads (self):
+        fresh_xyz_grads = torch.mul(self._xyz.grad, self._newly_added)
+        fresh_
+
+    def normalize_growth_direction_probabilities (self):
+        sums = torch.sum(self.growth_directions_probabilities, dim = 1)
+        self.growth_directions_probabilities = torch.div(self.growth_directions_probabilities, sums)
