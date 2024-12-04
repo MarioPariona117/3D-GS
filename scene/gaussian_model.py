@@ -689,5 +689,6 @@ class GaussianModel:
         fresh_ """
 
     def normalize_growth_direction_probabilities (self):
-        sums = torch.sum(self.growth_directions_probabilities, dim = 1)
-        self.growth_directions_probabilities = torch.div(self.growth_directions_probabilities, sums)
+        """ sums = torch.sum(self.growth_directions_probabilities, dim = 1)
+        self.growth_directions_probabilities = torch.div(self.growth_directions_probabilities, sums) """
+        pass
