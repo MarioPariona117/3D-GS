@@ -152,8 +152,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 size_threshold = 20 if iteration > opt.opacity_reset_interval else None
                 gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii)
                 image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth = render_and_calc_loss()
-                print(gaussians._xyz.grad)
-                print(gaussians.growth_directions_probabilities.grad)
+                """ print(gaussians._xyz.grad)
+                print(gaussians.growth_directions_probabilities.grad) """
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
 
