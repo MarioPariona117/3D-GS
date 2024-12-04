@@ -595,6 +595,8 @@ class GaussianModel:
 
         self.d_togrow_x_d_growth_directions_probabilities = self.growth_directions_probabilities.grad.clone().detach()
         self.d_togrow_x_d_growth_length_s = self.growth_length_s.grad.clone().detach()
+        print(self.d_togrow_x_d_growth_directions_probabilities.size())
+        print(self.d_togrow_x_d_growth_length_s.size())
 
         self.growth_directions_probabilities.grad = None
         self.growth_length_s.grad = None
