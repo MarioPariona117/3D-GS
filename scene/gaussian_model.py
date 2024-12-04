@@ -430,6 +430,7 @@ class GaussianModel:
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self._newly_cloned = self._newly_cloned[valid_points_mask]
+        self.just_cloned_mask = self.just_cloned_mask[valid_points_mask]
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
 
