@@ -579,6 +579,8 @@ class GaussianModel:
 
         new_newly_added = torch.ones([new_rotation.size(), 1], device = "cuda") """
 
+        selected_pts_mask = selected_pts_mask.unsqueeze(1)
+        
         growth_dist = self.calc_growth_dist(selected_pts_mask)
         differentiable_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
         growth_dir_to_reparametrise = self.calc_growth_dir_repara(selected_pts_mask)
@@ -652,16 +654,16 @@ class GaussianModel:
     #     self.growth_directions_probabilities = nn.Parameter(torch.full([l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
 
     def calc_growth_dir_soft(self, selected_pts_mask):
-        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask.unsqueeze(1))
+        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask)
         index_soft = torch.nn.functional.softmax(selected_pts_growth_probabilities, dim = 1)
         return torch.matmul(index_soft, self.growth_directions)
 
     def calc_growth_dir_repara(self, selected_pts_mask):
-        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask.unsqueeze(1))
+        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask)
         index = torch.argmax(selected_pts_growth_probabilities, dim=1)
         index_hard = torch.nn.functional.one_hot(index, num_classes=self.growth_directions.shape[0]).to(self.growth_directions.device)
 
-        selected_pts_s = torch.mul(self.growth_length_s, selected_pts_mask.unsqueeze(1))
+        selected_pts_s = torch.mul(self.growth_length_s, selected_pts_mask)
 
         return torch.matmul(index_hard.float(), self.growth_directions) / selected_pts_s
     
@@ -673,7 +675,8 @@ class GaussianModel:
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals)
         sd = torch.sqrt(variance)
-        ret = 2 * sd / (1 + torch.exp(- self.growth_length_s[selected_pts_mask]))
+        selected_growth_length_s = torch.mul(self.growth_length_s, selected_pts_mask)
+        ret = 2 * sd / (1 + torch.exp(- selected_growth_length_s))
         return ret
     
     def get_actual_covariances (self, selected_pts_mask, scaling_modifier = 1):
