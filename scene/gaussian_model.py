@@ -188,7 +188,7 @@ class GaussianModel:
         self._s_prime = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
         self._v = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
 
-        self._newly_cloned = torch.zeros([fused_point_cloud.shape[0], 1], device = "cuda")
+        self._newly_cloned = torch.zeros([fused_point_cloud.shape[0], 1], device = "cuda", dtype = torch.bool)
 
         # Xavier initialization (TODO: ablation test against uniform initialisation with grads)
         nn.init.xavier_uniform_(self._s_prime)
@@ -540,7 +540,7 @@ class GaussianModel:
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask].repeat(N ,1)
         new_growth_length_s = self.growth_length_s[selected_pts_mask].repeat(N, 1)
 
-        new_newly_cloned = torch.ones(new_rotation.size(), device = "cuda")
+        new_newly_cloned = torch.zeros(new_rotation.size(), device = "cuda", dtype = torch.bool)
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_cloned)
 
@@ -576,22 +576,45 @@ class GaussianModel:
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
         #handle gradients
-        togrow_sum = torch.sum(togrow)
-        #togrow_sum.backward()
+        togrow_sum = torch.sum(togrow, dim = 1)
+        togrow_x_sum, togrow_y_sum, togrow_z_sum = togrow_sum[0], togrow_sum[1], togrow_sum[2]
 
-        self.d_togrow_d_growth_directions_probabilities = torch.autograd.grad(togrow_sum, self.growth_directions_probabilities)
-        self.d_togrow_d_growth_length_s = torch.autograd.grad(togrow_sum, self.growth_length_s)
+        togrow_x_sum.backward()
 
-        """ self.d_togrow_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
-        self.d_togrow_d_growth_length_s = self.growth_length_s.grad
+        self.d_togrow_x_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
+        self.d_togrow_x_d_growth_length_s = self.growth_length_s.grad
 
         self.growth_directions_probabilities.grad = None
-        self.growth_length_s.grad = None """
-        print(self.growth_directions_probabilities.grad)
+        self.growth_length_s.grad = None
 
-        new_newly_cloned = torch.ones(new_rotation.size(), device = "cuda")
+        togrow_y_sum.backward()
 
-        self.just_cloned_from = selected_pts_mask
+        self.d_togrow_y_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
+        self.d_togrow_y_d_growth_length_s = self.growth_length_s.grad
+
+        self.growth_directions_probabilities.grad = None
+        self.growth_length_s.grad = None
+
+        togrow_y_sum.backward()
+
+        self.d_togrow_z_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
+        self.d_togrow_z_d_growth_length_s = self.growth_length_s.grad
+
+        self.growth_directions_probabilities.grad = None
+        self.growth_length_s.grad = None
+
+        """ self.d_togrow_d_growth_directions_probabilities = torch.autograd.grad(togrow_sum, self.growth_directions_probabilities)
+        self.d_togrow_d_growth_length_s = torch.autograd.grad(togrow_sum, self.growth_length_s) """
+
+        self.d_togrow_x_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
+        self.d_togrow_x_d_growth_length_s = self.growth_length_s.grad
+
+        self.growth_directions_probabilities.grad = None
+        self.growth_length_s.grad = None
+
+        new_newly_cloned = torch.ones(new_rotation.size(), device = "cuda", dtype = torch.bool)
+
+        self.just_cloned_mask = torch.cat((selected_pts_mask, torch.zeros(new_rotation.size(), device = "cuda", dtype = torch.bool)))
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_cloned)
 
@@ -666,13 +689,18 @@ class GaussianModel:
         L = build_scaling_rotation(scaling_modifier * self.get_scaling[selected_pts_mask], self._rotation[selected_pts_mask])
         return L @ L.transpose(1, 2)
     
-    """ def calc_evolutive_density_control_param_grads (self):
+    def calc_evolutive_density_control_param_grads (self):
         self.calc_clone_grads()
-        self._newly_cloned = torch.zeros(self._newly_cloned.size(), device = "cuda")
+        self._newly_cloned = torch.zeros(self._newly_cloned.size(), device = "cuda", dtype = torch.bool)
 
     def calc_clone_grads (self):
-        fresh_xyz_grads = torch.mul(self._xyz.grad, self._newly_cloned)
-        fresh_ """
+        d_loss_d_growth_directions_probabilities = torch.zeros((self._xyz.size()[0], self.growth_directions_count), device = "cuda")
+
+        d_loss_d_xyzprime = self._xyz.grad[self._newly_cloned]
+
+        d_loss_d_growth_directions_probabilities[self.just_cloned_mask] = d_loss_d_xyzprime * self.d_togrow_d_growth_directions_probabilities
+
+        self.growth_directions_probabilities.grad = d_loss_d_growth_directions_probabilities
 
     def normalize_growth_direction_probabilities (self):
         """ sums = torch.sum(self.growth_directions_probabilities, dim = 1).unsqueeze(1)
