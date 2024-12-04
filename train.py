@@ -140,6 +140,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             Ll1depth = 0
 
         loss.backward(retain_graph = True)
+        if not (gaussians.growth_directions_probabilities.grad is None and gaussians.growth_length_s.grad is None and gaussians._s_prime.grad is None and gaussians._v.grad is None):
+            print(gaussians.growth_directions_probabilities.grad)
+            print(gaussians.growth_length_s.grad)
+            print(gaussians._s_prime.grad)
+            print(gaussians._v.grad)
 
         iter_end.record()
 
