@@ -170,8 +170,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii)
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
-        if iteration < opt.densify_until_iter + 1 and iteration > opt.densify_from_iter and iteration % opt.densification_interval == 1:
-            gaussians.calc_evolutive_density_control_param_grads()
+        """ if iteration < opt.densify_until_iter + 1 and iteration > opt.densify_from_iter and iteration % opt.densification_interval == 1:
+            gaussians.calc_evolutive_density_control_param_grads() """
         
         # Optimizer step
         if iteration < opt.iterations:
@@ -186,7 +186,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 gaussians.optimizer.zero_grad(set_to_none = True)
             
             gaussians.normalize_growth_direction_probabilities()
-            
+
         if (iteration in checkpoint_iterations):
             print("\n[ITER {}] Saving Checkpoint".format(iteration))
             torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
