@@ -26,6 +26,7 @@ class Scene:
         """b
         :param path: Path to colmap scene main folder.
         """
+        assert type(args) == ModelParams, "args must be of type ModelParams"
         self.model_path = args.model_path
         self.loaded_iter = None
         self.gaussians = gaussians
@@ -75,7 +76,7 @@ class Scene:
             self.test_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.test_cameras, resolution_scale, args, scene_info.is_nerf_synthetic, True)
 
         if self.loaded_iter:
-            print(self.model_path)
+            # print(self.model_path)
             self.gaussians.load_ply(os.path.join(self.model_path,
                                                            "point_cloud",
                                                            "iteration_" + str(self.loaded_iter),

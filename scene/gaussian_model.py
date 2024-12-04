@@ -487,7 +487,7 @@ class GaussianModel:
                                               torch.max(self.get_scaling, dim=1).values > self.percent_dense*scene_extent)
 
         delta_mu = self.del_mu(selected_pts_mask, N).squeeze(-1)
-        print(delta_mu.shape)
+        # print(delta_mu.shape)
         xyz = self.get_xyz[selected_pts_mask].repeat(N, 1)
         # print(xyz.shape)
         # new_xyz = self.del_mu(selected_pts_mask, N) + self.get_xyz[selected_pts_mask].repeat(N, 1)

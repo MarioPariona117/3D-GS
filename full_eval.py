@@ -47,7 +47,7 @@ if not args.skip_training or not args.skip_rendering:
     parser.add_argument('--mipnerf360', "-m360", required=True, type=str)
     parser.add_argument("--tanksandtemples", "-tat", required=True, type=str)
     parser.add_argument("--deepblending", "-db", required=True, type=str)
-    parser.add_argument("--llff", required=True, type=str, help="Path to the LLFF dataset")
+    parser.add_argument("--llff", "-lf", required=True, type=str, help="Path to the LLFF dataset")
 
     args = parser.parse_args()
 if not args.skip_training:
@@ -68,6 +68,7 @@ if not args.skip_training:
     for scene in mipnerf360_outdoor_scenes:
         source = args.mipnerf360 + "/" + scene
         os.system("python train.py -s " + source + " -i images_4 -m " + args.output_path + "/" + scene + common_args)
+
     for scene in mipnerf360_indoor_scenes:
         source = args.mipnerf360 + "/" + scene
         os.system("python train.py -s " + source + " -i images_2 -m " + args.output_path + "/" + scene + common_args)
@@ -87,6 +88,7 @@ if not args.skip_training:
 
     start_time = time.time()
     for scene in llff_scenes:
+        print(scene)
         source = os.path.join(args.llff, scene) 
         common_args_llff = common_args 
         os.system("python train.py -s " + source + " -i images -m " + args.output_path + "/" + scene + common_args_llff)
