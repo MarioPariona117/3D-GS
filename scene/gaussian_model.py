@@ -547,6 +547,8 @@ class GaussianModel:
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
 
+        print(selected_pts_mask)
+
         growth_dist = self.calc_growth_dist(selected_pts_mask)
         differentiable_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
         growth_dir_to_reparametrise = self.calc_growth_dir_repara(selected_pts_mask)
