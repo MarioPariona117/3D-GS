@@ -429,6 +429,8 @@ class GaussianModel:
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
+        self._newly_cloned = self._newly_cloned[valid_points_mask]
+
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
 
         self.denom = self.denom[valid_points_mask]
