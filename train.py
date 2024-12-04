@@ -159,8 +159,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         if iteration % opt.densification_interval == 1:
             dot = make_dot(loss, params=dict(gaussians.named_parameters()), show_attrs=True, show_saved=True)
             dot.render("model_visualization", format="pdf")
-        for name, param in gaussians.named_parameters():
-            print (name)
+        """ for name, param in gaussians.named_parameters():
+            print (name) """
 
 
         iter_end.record()
