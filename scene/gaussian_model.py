@@ -709,4 +709,3 @@ class GaussianModel:
     def normalize_growth_direction_probabilities (self):
         sums = torch.sum(self.growth_directions_probabilities, dim = 1).unsqueeze(1)
         self.growth_directions_probabilities = torch.div(self.growth_directions_probabilities, sums)
-        pass
