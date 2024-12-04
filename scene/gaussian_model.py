@@ -188,7 +188,7 @@ class GaussianModel:
         self._s_prime = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
         self._v = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
 
-        self._newly_cloned = torch.zeros([fused_point_cloud.shape[0], 1], device = "cuda", dtype = torch.bool)
+        self._newly_cloned = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
 
         # Xavier initialization (TODO: ablation test against uniform initialisation with grads)
         nn.init.xavier_uniform_(self._s_prime)
