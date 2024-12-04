@@ -595,7 +595,7 @@ class GaussianModel:
         self.growth_directions_probabilities.grad = None
         self.growth_length_s.grad = None
 
-        togrow_y_sum.backward()
+        togrow_z_sum.backward()
 
         self.d_togrow_z_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
         self.d_togrow_z_d_growth_length_s = self.growth_length_s.grad
@@ -606,11 +606,7 @@ class GaussianModel:
         """ self.d_togrow_d_growth_directions_probabilities = torch.autograd.grad(togrow_sum, self.growth_directions_probabilities)
         self.d_togrow_d_growth_length_s = torch.autograd.grad(togrow_sum, self.growth_length_s) """
 
-        self.d_togrow_x_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
-        self.d_togrow_x_d_growth_length_s = self.growth_length_s.grad
-
-        self.growth_directions_probabilities.grad = None
-        self.growth_length_s.grad = None
+        print(self.d_togrow_y_d_growth_directions_probabilities)
 
         new_newly_cloned = torch.ones(new_rotation.size(), device = "cuda", dtype = torch.bool)
 
