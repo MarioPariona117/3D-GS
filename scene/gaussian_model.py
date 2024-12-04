@@ -553,7 +553,7 @@ class GaussianModel:
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
 
-        print(selected_pts_mask)
+        """ print(selected_pts_mask)
 
         growth_dist = self.calc_growth_dist(selected_pts_mask)
         differentiable_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
@@ -576,6 +576,30 @@ class GaussianModel:
 
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
+
+        new_newly_added = torch.ones([new_rotation.size(), 1], device = "cuda") """
+
+        growth_dist = self.calc_growth_dist(selected_pts_mask)
+        differentiable_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
+        growth_dir_to_reparametrise = self.calc_growth_dir_repara(selected_pts_mask)
+
+        reparameterised_dir = growth_dir_to_reparametrise * (1-eps) + differentiable_growth_dir * eps
+        togrow = torch.mul(growth_dist, reparameterised_dir)
+
+        new_xyz = torch.mul(self._xyz, selected_pts_mask) + togrow
+
+        new_features_dc = torch.mul(self._features_dc, selected_pts_mask)
+        new_features_rest = torch.mul(self._features_rest, selected_pts_mask)
+        new_opacities = torch.mul(self._opacity, selected_pts_mask)
+        new_scaling = torch.mul(self._scaling, selected_pts_mask)
+        new_rotation = torch.mul(self._rotation, selected_pts_mask)
+
+        new_tmp_radii = torch.mul(self.tmp_radii, selected_pts_mask)
+        new_s_prime = torch.mul(self._s_prime, selected_pts_mask)
+        new_v = torch.mul(self._v, selected_pts_mask)
+
+        new_growth_directions_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask)
+        new_growth_length_s = torch.mul(self.growth_length_s, selected_pts_mask)
 
         new_newly_added = torch.ones([new_rotation.size(), 1], device = "cuda")
 
@@ -628,14 +652,18 @@ class GaussianModel:
     #     self.growth_directions_probabilities = nn.Parameter(torch.full([l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
 
     def calc_growth_dir_soft(self, selected_pts_mask):
-        index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities[selected_pts_mask], dim = 1)
+        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask)
+        index_soft = torch.nn.functional.softmax(selected_pts_growth_probabilities, dim = 1)
         return torch.matmul(index_soft, self.growth_directions)
 
     def calc_growth_dir_repara(self, selected_pts_mask):
-        index = torch.argmax(self.growth_directions_probabilities[selected_pts_mask], dim=1)
+        selected_pts_growth_probabilities = torch.mul(self.growth_directions_probabilities, selected_pts_mask)
+        index = torch.argmax(selected_pts_growth_probabilities, dim=1)
         index_hard = torch.nn.functional.one_hot(index, num_classes=self.growth_directions.shape[0]).to(self.growth_directions.device)
 
-        return torch.matmul(index_hard.float(), self.growth_directions) / self.growth_length_s[selected_pts_mask]
+        selected_pts_s = torch.mul(self.growth_length_s, selected_pts_mask)
+
+        return torch.matmul(index_hard.float(), self.growth_directions) / selected_pts_s
     
     def calc_growth_dist (self, selected_pts_mask):
         # v is 2 * maximum standard deviation of original gaussians
@@ -652,13 +680,13 @@ class GaussianModel:
         L = build_scaling_rotation(scaling_modifier * self.get_scaling[selected_pts_mask], self._rotation[selected_pts_mask])
         return L @ L.transpose(1, 2)
     
-    def calc_evolutive_density_control_param_grads (self):
+    """ def calc_evolutive_density_control_param_grads (self):
         self.calc_clone_grads()
         self._newly_added = torch.zeros(self._newly_added.size(), device = "cuda")
 
     def calc_clone_grads (self):
         fresh_xyz_grads = torch.mul(self._xyz.grad, self._newly_added)
-        fresh_
+        fresh_ """
 
     def normalize_growth_direction_probabilities (self):
         sums = torch.sum(self.growth_directions_probabilities, dim = 1)
