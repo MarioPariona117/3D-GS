@@ -543,6 +543,9 @@ class GaussianModel:
 
     def densify_and_clone(self, grads, grad_threshold, scene_extent, eps=1e-6):
         # Extract points that satisfy the gradient condition
+        print(self.growth_directions_probabilities.is_leaf)
+        print(self.growth_length_s.is_leaf)
+        
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
@@ -551,10 +554,10 @@ class GaussianModel:
         differentiable_growth_dir = self.calc_growth_dir_soft(growth_dist, selected_pts_mask)
         growth_dir_to_reparametrise = self.calc_growth_dir_repara(growth_dist, selected_pts_mask)
 
-        print(torch.allclose(differentiable_growth_dir, growth_dir_to_reparametrise, atol=1e-2))
+        """ print(torch.allclose(differentiable_growth_dir, growth_dir_to_reparametrise, atol=1e-2))
         print(torch.allclose(differentiable_growth_dir, growth_dir_to_reparametrise, atol=1e-5))
         print(differentiable_growth_dir[0])
-        print(growth_dir_to_reparametrise[0])
+        print(growth_dir_to_reparametrise[0]) """
 
         reparameterised_dir = growth_dir_to_reparametrise * (1-eps) + differentiable_growth_dir * eps
         togrow = torch.mul(growth_dist, reparameterised_dir)
