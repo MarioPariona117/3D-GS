@@ -579,7 +579,7 @@ class GaussianModel:
         togrow_sum = torch.sum(togrow, dim = 1)
         togrow_x_sum, togrow_y_sum, togrow_z_sum = togrow_sum[0], togrow_sum[1], togrow_sum[2]
 
-        togrow_x_sum.backward()
+        togrow_x_sum.backward(retain_graph = True)
 
         self.d_togrow_x_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
         self.d_togrow_x_d_growth_length_s = self.growth_length_s.grad
@@ -587,7 +587,7 @@ class GaussianModel:
         self.growth_directions_probabilities.grad = None
         self.growth_length_s.grad = None
 
-        togrow_y_sum.backward()
+        togrow_y_sum.backward(retain_graph = True)
 
         self.d_togrow_y_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
         self.d_togrow_y_d_growth_length_s = self.growth_length_s.grad
@@ -692,13 +692,20 @@ class GaussianModel:
     def calc_clone_grads (self):
         d_loss_d_growth_directions_probabilities = torch.zeros((self._xyz.size()[0], self.growth_directions_count), device = "cuda")
 
-        d_loss_d_xyzprime = self._xyz.grad[self._newly_cloned]
+        fresh_xyzprime_grads = self._xyz.grad[self._newly_cloned].T
+        d_loss_d_xprime, d_loss_d_yprime, d_loss_d_zprime = fresh_xyzprime_grads[0], fresh_xyzprime_grads[1], fresh_xyzprime_grads[2]
 
-        d_loss_d_growth_directions_probabilities[self.just_cloned_mask] = d_loss_d_xyzprime * self.d_togrow_d_growth_directions_probabilities
+        d_loss_d_growth_directions_probabilities[self.just_cloned_mask] = d_loss_d_xprime * self.d_togrow_x_d_growth_directions_probabilities + d_loss_d_yprime * self.d_togrow_y_d_growth_directions_probabilities + d_loss_d_zprime * self.d_togrow_z_d_growth_directions_probabilities
 
         self.growth_directions_probabilities.grad = d_loss_d_growth_directions_probabilities
 
+        d_loss_d_growth_length_s = torch.zeros((self._xyz.size()[0], 1), device = "cuda")
+        d_loss_d_growth_length_s[self.just_cloned_mask] = d_loss_d_xprime * self.d_togrow_x_d_growth_length_s + d_loss_d_yprime * self.d_togrow_y_d_growth_length_s + d_loss_d_zprime * self.d_togrow_z_d_growth_length_s
+
+        self.growth_length_s.grad = d_loss_d_growth_length_s
+
+
     def normalize_growth_direction_probabilities (self):
-        """ sums = torch.sum(self.growth_directions_probabilities, dim = 1).unsqueeze(1)
-        self.growth_directions_probabilities = torch.div(self.growth_directions_probabilities, sums) """
+        sums = torch.sum(self.growth_directions_probabilities, dim = 1).unsqueeze(1)
+        self.growth_directions_probabilities = torch.div(self.growth_directions_probabilities, sums)
         pass
