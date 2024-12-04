@@ -141,9 +141,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         loss.backward()
         if not (gaussians.growth_directions_probabilities.grad is None and gaussians.growth_length_s.grad is None and gaussians._s_prime.grad is None and gaussians._v.grad is None):
+            print('growth_directions_probabilities')
             print(gaussians.growth_directions_probabilities.grad)
+            print('growth_length_s')
             print(gaussians.growth_length_s.grad)
+            print('_s_prime')
             print(gaussians._s_prime.grad)
+            print('_v')
             print(gaussians._v.grad)
 
         iter_end.record()
