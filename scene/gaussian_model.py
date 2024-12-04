@@ -483,7 +483,7 @@ class GaussianModel:
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
-        self._newly_cloned = torch.cat(self._newly_cloned, new_newly_cloned, dim = 0)
+        self._newly_cloned = torch.cat((self._newly_cloned, new_newly_cloned), dim = 0)
 
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))
         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
@@ -560,10 +560,6 @@ class GaussianModel:
         reparameterised_dir = growth_dir_to_reparametrise * (1-eps) + differentiable_growth_dir * eps
         togrow = torch.mul(growth_dist, reparameterised_dir)
 
-        togrow_sum = torch.sum(togrow)
-        togrow_sum.backward()
-        print(self.growth_directions_probabilities.grad.size())
-
         new_xyz = self._xyz[selected_pts_mask] + togrow
 
         new_features_dc = self._features_dc[selected_pts_mask]
@@ -578,6 +574,20 @@ class GaussianModel:
 
         new_growth_directions_probabilities = self.growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
+
+        #handle gradients
+        togrow_sum = torch.sum(togrow)
+        #togrow_sum.backward()
+
+        self.d_togrow_d_growth_directions_probabilities = torch.autograd.grad(togrow_sum, self.growth_directions_probabilities)
+        self.d_togrow_d_growth_length_s = torch.autograd.grad(togrow_sum, self.growth_length_s)
+
+        """ self.d_togrow_d_growth_directions_probabilities = self.growth_directions_probabilities.grad
+        self.d_togrow_d_growth_length_s = self.growth_length_s.grad
+
+        self.growth_directions_probabilities.grad = None
+        self.growth_length_s.grad = None """
+        print(self.growth_directions_probabilities.grad)
 
         new_newly_cloned = torch.ones(new_rotation.size(), device = "cuda")
 
