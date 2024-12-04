@@ -19,3 +19,11 @@ DrJohnson_Reconstruction_Inputs_Outputs.zip
 Playroom_Reconstruction_Inputs_Outputs.zip
 
 *.ply
+
+*.aux
+*.fdb
+*.log
+*.fls
+*.synctex.gz
+*.fdb_latexmk
+*.pytxcode
