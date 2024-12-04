@@ -587,32 +587,32 @@ class GaussianModel:
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_cloned)
 
     def clone_handle_gradients (self, togrow, newsize, selected_pts_mask):
-        print(newsize)
+        #print(newsize)
         togrow_sum = torch.sum(togrow, dim = 1)
         togrow_x_sum, togrow_y_sum, togrow_z_sum = togrow_sum[0], togrow_sum[1], togrow_sum[2]
 
         togrow_x_sum.backward(retain_graph = True)
 
-        self.d_togrow_x_d_growth_directions_probabilities = self.growth_directions_probabilities.grad.clone().detach()
-        self.d_togrow_x_d_growth_length_s = self.growth_length_s.grad.clone().detach()
-        print(self.d_togrow_x_d_growth_directions_probabilities.size())
-        print(self.d_togrow_x_d_growth_length_s.size())
+        self.d_togrow_x_d_growth_directions_probabilities = self.growth_directions_probabilities.grad[selected_pts_mask].clone().detach()
+        self.d_togrow_x_d_growth_length_s = self.growth_length_s.grad[selected_pts_mask].clone().detach()
+        #print(self.d_togrow_x_d_growth_directions_probabilities.size())
+        #print(self.d_togrow_x_d_growth_length_s.size())
 
         self.growth_directions_probabilities.grad = None
         self.growth_length_s.grad = None
 
         togrow_y_sum.backward(retain_graph = True)
 
-        self.d_togrow_y_d_growth_directions_probabilities = self.growth_directions_probabilities.grad.clone().detach()
-        self.d_togrow_y_d_growth_length_s = self.growth_length_s.grad.clone().detach()
+        self.d_togrow_y_d_growth_directions_probabilities = self.growth_directions_probabilities.grad[selected_pts_mask].clone().detach()
+        self.d_togrow_y_d_growth_length_s = self.growth_length_s.grad[selected_pts_mask].clone().detach()
 
         self.growth_directions_probabilities.grad = None
         self.growth_length_s.grad = None
 
         togrow_z_sum.backward()
 
-        self.d_togrow_z_d_growth_directions_probabilities = self.growth_directions_probabilities.grad.clone().detach()
-        self.d_togrow_z_d_growth_length_s = self.growth_length_s.grad.clone().detach()
+        self.d_togrow_z_d_growth_directions_probabilities = self.growth_directions_probabilities.grad[selected_pts_mask].clone().detach()
+        self.d_togrow_z_d_growth_length_s = self.growth_length_s.grad[selected_pts_mask].clone().detach()
 
         self.growth_directions_probabilities.grad = None
         self.growth_length_s.grad = None
@@ -714,7 +714,7 @@ class GaussianModel:
         d_loss_d_growth_directions_probabilities = torch.zeros((self._xyz.size()[0], self.growth_directions_count), device = "cuda")
 
         fresh_xyzprime_grads = self._xyz.grad[self._newly_cloned].T
-        d_loss_d_xprime, d_loss_d_yprime, d_loss_d_zprime = fresh_xyzprime_grads[0], fresh_xyzprime_grads[1], fresh_xyzprime_grads[2]
+        d_loss_d_xprime, d_loss_d_yprime, d_loss_d_zprime = fresh_xyzprime_grads[0].unsqueeze(1), fresh_xyzprime_grads[1].unsqueeze(1), fresh_xyzprime_grads[2].unsqueeze(1)
 
         d_loss_d_growth_directions_probabilities[self.just_cloned_mask] = d_loss_d_xprime * self.d_togrow_x_d_growth_directions_probabilities + d_loss_d_yprime * self.d_togrow_y_d_growth_directions_probabilities + d_loss_d_zprime * self.d_togrow_z_d_growth_directions_probabilities
 
