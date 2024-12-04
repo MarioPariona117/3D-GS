@@ -29,7 +29,7 @@ try:
 except:
     pass
 
-class GaussianModel ():
+class GaussianModel (torch.nn.Module):
 
     def setup_functions(self):
         def build_covariance_from_scaling_rotation(scaling, scaling_modifier, rotation):
@@ -50,6 +50,7 @@ class GaussianModel ():
 
 
     def __init__(self, sh_degree, optimizer_type="default", growth_directions_count = 20):
+        super(GaussianModel, self).__init__()
         self.active_sh_degree = 0
         self.optimizer_type = optimizer_type
         self.max_sh_degree = sh_degree  
