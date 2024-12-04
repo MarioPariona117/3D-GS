@@ -548,6 +548,8 @@ class GaussianModel:
         self.prune_points(prune_filter)
 
     def densify_and_clone(self, grads, grad_threshold, scene_extent, eps=1e-6):
+        print('isleaf')
+        print(self.growth_directions_probabilities.is_leaf)
         # Extract points that satisfy the gradient condition
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
