@@ -13,11 +13,16 @@ import os
 from argparse import ArgumentParser
 import time
 
-mipnerf360_outdoor_scenes = ["bicycle", "stump"]    
-mipnerf360_indoor_scenes = ["counter"]
-tanks_and_temples_scenes = ["truck", "train"]
-deep_blending_scenes = ["playroom"]
-llff_scenes = ["horns", "trex"]
+mipnerf360_outdoor_scenes = []    
+mipnerf360_indoor_scenes = []
+tanks_and_temples_scenes = []
+deep_blending_scenes = []
+llff_scenes = ["trex"]
+# mipnerf360_outdoor_scenes = ["bicycle", "stump"]    
+# mipnerf360_indoor_scenes = ["counter"]
+# tanks_and_temples_scenes = ["truck", "train"]
+# deep_blending_scenes = ["playroom"]
+# llff_scenes = ["horns", "trex"]
 # mipnerf360_outdoor_scenes = ["bicycle", "flowers", "garden", "stump", "treehill"]
 # mipnerf360_indoor_scenes = ["room", "counter", "kitchen", "bonsai"]
 # tanks_and_temples_scenes = ["truck", "train"]
@@ -95,7 +100,7 @@ if not args.skip_training:
     llff_timing = (time.time() - start_time) / 60.0
 
 with open(os.path.join(args.output_path,"timing.txt"), 'w') as file:
-    file.write(f"m360: {m360_timing} minutes \ntandt: {tandt_timing} minutes \ndb: {db_timing} minutes\nllff: {llff_timing} minutes\n")
+    file.write(f"m360: {m360_timing} minutes \n tandt: {tandt_timing} minutes \n db: {db_timing} minutes\n")
 
 if not args.skip_rendering:
     all_sources = []
