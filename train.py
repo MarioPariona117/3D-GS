@@ -42,6 +42,8 @@ except:
 
 from utils.primitives import PrimitiveGrowthFunction
 
+import torchviz
+
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
 
     if not SPARSE_ADAM_AVAILABLE and opt.optimizer_type == "sparse_adam":
@@ -143,6 +145,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
             # loss.backward(retain_graph = True)
             loss.backward()
+            torchviz.make_dot(loss).render("graphviz")
             print(gaussians.growth_directions_probabilities.grad)
             print(gaussians._xyz.grad)
             return image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth

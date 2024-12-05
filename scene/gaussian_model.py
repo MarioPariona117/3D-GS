@@ -490,7 +490,7 @@ class GaussianModel:
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
         self.growth_length_s = torch.ones([self._xyz.size()[0],1], device = 'cuda') * 1 / 100
         # optimizable_tensors['growth_length_s']
-
+        
         # self._newly_cloned = torch.cat((self._newly_cloned, new_newly_cloned), dim = 0)
 
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))
