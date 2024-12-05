@@ -552,7 +552,7 @@ class GaussianModel:
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
 
-    def densify_and_clone(self, grads, grad_threshold, scene_extent, eps=1e-6):
+    def densify_and_clone(self, grads, grad_threshold, scene_extent):
         # Extract points that satisfy the gradient condition
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
@@ -567,8 +567,8 @@ class GaussianModel:
         print(differentiable_growth_dir[0])
         print(growth_dir_to_reparametrise[0]) """
 
-        reparameterised_dir = growth_dir_to_reparametrise * (1-eps) + differentiable_growth_dir * eps
-        togrow = torch.mul(growth_dist, reparameterised_dir)
+        reparameterised_dir = growth_dir_to_reparametrise + differentiable_growth_dir - differentiable_growth_dir.detach()
+        togrow = torch.mul(growth_dist, reparameterised_dir) / growth_dist
 
         new_xyz = self._xyz[selected_pts_mask] + togrow
 
@@ -666,7 +666,7 @@ class GaussianModel:
         self.growth_directions_probabilities = nn.Parameter(torch.full(
             [l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True)
         )
-        nn.init.xavier_uniform_(self.growth_directions_probabilities)
+        # nn.init.xavier_uniform_(self.growth_directions_probabilities)
 
     # def initialize_growth_directions (self, l):
     #     self.growth_directions = torch.rand([self.growth_directions_count, 3], device="cuda")
@@ -674,14 +674,14 @@ class GaussianModel:
 
     #     self.growth_directions_probabilities = nn.Parameter(torch.full([l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True))
 
-    def calc_growth_dir_soft(self, growth_dist, selected_pts_mask, temperature=1e-3):
+    def calc_growth_dir_soft(self, selected_pts_mask, temperature=1e-2):
         index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities[selected_pts_mask] / temperature, dim = 1)
-        return torch.matmul(index_soft, self.growth_directions) / growth_dist
+        return torch.matmul(index_soft, self.growth_directions)
 
-    def calc_growth_dir_repara(self, growth_dist, selected_pts_mask):
+    def calc_growth_dir_repara(self, selected_pts_mask):
         index = torch.argmax(self.growth_directions_probabilities[selected_pts_mask], dim=1)
         index_hard = torch.nn.functional.one_hot(index, num_classes=self.growth_directions.shape[0]).to(self.growth_directions.device)
-        return torch.matmul(index_hard.float(), self.growth_directions) / growth_dist
+        return torch.matmul(index_hard.float(), self.growth_directions)
     
     """ def calc_growth_dist (self, selected_pts_mask):
         # v is 2 * maximum standard deviation of original gaussians
@@ -727,7 +727,7 @@ class GaussianModel:
         d_loss_d_growth_length_s = torch.zeros((self._xyz.size()[0], 1), device = "cuda")
         d_loss_d_growth_length_s[self.just_cloned_mask] = d_loss_d_xprime * self.d_togrow_x_d_growth_length_s + d_loss_d_yprime * self.d_togrow_y_d_growth_length_s + d_loss_d_zprime * self.d_togrow_z_d_growth_length_s
 
-        self.growth_length_s.grad = d_loss_d_growth_length_s * 10000
+        self.growth_length_s.grad = d_loss_d_growth_length_s
 
 
     def normalize_growth_direction_probabilities (self):
