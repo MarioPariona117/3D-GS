@@ -189,7 +189,7 @@ class GaussianModel:
         self._s_prime = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
         self._v = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
 
-        self._newly_cloned = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
+        # self._newly_cloned = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
 
         # Xavier initialization (TODO: ablation test against uniform initialisation with grads)
         nn.init.xavier_uniform_(self._s_prime)
@@ -433,7 +433,7 @@ class GaussianModel:
         # optimizable_tensors['growth_length_s']
         # self.growth_length_s = optimizable_tensors['growth_length_s']
 
-        self._newly_cloned = self._newly_cloned[valid_points_mask]
+        # self._newly_cloned = self._newly_cloned[valid_points_mask]
         # self.just_cloned_mask = self.just_cloned_mask[valid_points_mask]
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
@@ -692,7 +692,7 @@ class GaussianModel:
     
     def calc_evolutive_density_control_param_grads (self):
         self.calc_clone_grads()
-        self._newly_cloned = torch.zeros(self._newly_cloned.size(), device = "cuda", dtype = torch.bool)
+        # self._newly_cloned = torch.zeros(self._newly_cloned.size(), device = "cuda", dtype = torch.bool)
 
     def calc_clone_grads (self):
         """ d_loss_d_growth_directions_probabilities = torch.zeros((self._xyz.size()[0], self.growth_directions_count), device = "cuda")

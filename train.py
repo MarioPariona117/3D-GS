@@ -158,7 +158,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 """ print(gaussians._xyz.grad)
                 print(gaussians.growth_directions_probabilities.grad) """
 
-                gaussians.calc_evolutive_density_control_param_grads()
+                # gaussians.calc_evolutive_density_control_param_grads()
                 """ print(torch.max(gaussians.growth_directions_probabilities.grad))
                 print(torch.max(gaussians.growth_length_s.grad)) """
 
