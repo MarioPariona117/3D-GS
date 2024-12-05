@@ -143,7 +143,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
             # loss.backward(retain_graph = True)
             loss.backward()
-
+            print(gaussians.growth_directions_probabilities.grad)
             return image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth
 
         image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth = render_and_calc_loss()
