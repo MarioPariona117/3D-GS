@@ -70,8 +70,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     ema_loss_for_log = 0.0
     ema_Ll1depth_for_log = 0.0
 
-    # progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
-    progress_bar = tqdm(range(first_iter, first_iter), desc="Training progress")
+    progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
+    # progress_bar = tqdm(range(first_iter, first_iter), desc="Training progress")
     first_iter += 1
     for iteration in progress_bar:
         if network_gui.conn == None:
