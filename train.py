@@ -143,8 +143,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             else:
                 Ll1depth = 0
 
-            # loss.backward(retain_graph = True)
-            loss.backward()
+            loss.backward(retain_graph = True)
+            # loss.backward()
             torchviz.make_dot(loss).render("graphviz")
             print(gaussians.growth_directions_probabilities.grad)
             print(gaussians._xyz.grad)
