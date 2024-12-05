@@ -26,7 +26,7 @@ class Scene:
         """b
         :param path: Path to colmap scene main folder.
         """
-        assert type(args) == ModelParams, "args must be of type ModelParams"
+        # assert type(args) == ModelParams, "args must be of type ModelParams"
         self.model_path = args.model_path
         self.loaded_iter = None
         self.gaussians = gaussians
