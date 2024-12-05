@@ -628,6 +628,10 @@ class GaussianModel:
         
         return new_newly_cloned """
         #print(newsize)
+        togrow.backward(torch.ones_like(togrow))
+        print(self.growth_directions_probabilities.grad)
+        print(self.growth_length_s.grad)
+
         togrow_sum = torch.sum(togrow, dim = 1)
         togrow_x_sum, togrow_y_sum, togrow_z_sum = togrow_sum[0], togrow_sum[1], togrow_sum[2]
 
