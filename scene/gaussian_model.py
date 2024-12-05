@@ -630,9 +630,11 @@ class GaussianModel:
         #print(newsize)
         togrow.backward(torch.ones_like(togrow))
         print('probs grad')
-        print(self.growth_directions_probabilities.grad)
+        print(torch.max(self.growth_directions_probabilities.grad))
+        print(self.growth_directions_probabilities.grad.size())
         print('s grad')
-        print(self.growth_length_s.grad)
+        print(torch.max(self.growth_length_s.grad))
+        print(self.growth_length_s.grad.size())
 
         togrow_sum = torch.sum(togrow, dim = 1)
         togrow_x_sum, togrow_y_sum, togrow_z_sum = togrow_sum[0], togrow_sum[1], togrow_sum[2]
