@@ -429,7 +429,9 @@ class GaussianModel:
         self._s_prime = optimizable_tensors["s_prime"]
         self._v = optimizable_tensors["v"]
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
-        self.growth_length_s = optimizable_tensors['growth_length_s']
+        self.growth_length_s = torch.ones([self._xyz.size()[0],1], device = 'cuda') * 1 / 100
+        # optimizable_tensors['growth_length_s']
+        # self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self._newly_cloned = self._newly_cloned[valid_points_mask]
         # self.just_cloned_mask = self.just_cloned_mask[valid_points_mask]
