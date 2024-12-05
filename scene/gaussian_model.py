@@ -432,7 +432,7 @@ class GaussianModel:
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self._newly_cloned = self._newly_cloned[valid_points_mask]
-        self.just_cloned_mask = self.just_cloned_mask[valid_points_mask]
+        # self.just_cloned_mask = self.just_cloned_mask[valid_points_mask]
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
 
@@ -548,7 +548,7 @@ class GaussianModel:
 
         # new_newly_cloned = torch.zeros(new_rotation.size()[0], device = "cuda", dtype = torch.bool)
 
-        self.just_cloned_mask = torch.cat((self.just_cloned_mask, torch.zeros(new_rotation.size()[0], device = "cuda", dtype = torch.bool)))
+        # self.just_cloned_mask = torch.cat((self.just_cloned_mask, torch.zeros(new_rotation.size()[0], device = "cuda", dtype = torch.bool)))
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s)
 
