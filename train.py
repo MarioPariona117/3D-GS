@@ -40,6 +40,8 @@ try:
 except:
     SPARSE_ADAM_AVAILABLE = False
 
+from utils.primitives import PrimitiveGrowthFunction
+
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
 
     if not SPARSE_ADAM_AVAILABLE and opt.optimizer_type == "sparse_adam":
@@ -139,7 +141,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             else:
                 Ll1depth = 0
 
-            loss.backward(retain_graph = True)
+            # loss.backward(retain_graph = True)
+            loss.backward()
 
             return image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth
 

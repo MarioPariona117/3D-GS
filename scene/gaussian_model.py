@@ -22,7 +22,7 @@ from utils.sh_utils import RGB2SH
 from simple_knn._C import distCUDA2
 from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation
-
+from utils.primitives import PrimitiveGrowthFunction
 
 try:
     from diff_gaussian_rasterization import SparseGaussianAdam
@@ -209,8 +209,9 @@ class GaussianModel:
 
             {'params': [self._s_prime], 'lr': training_args.s_prime_lr, "name": "s_prime"},
             {'params': [self._v], 'lr': training_args.v_lr, "name": "v"},
-            {'params': [self.growth_directions_probabilities], 'lr': training_args.growth_lr, "name": "growth_directions_probabilities"},
-            {'params': [self.growth_length_s], 'lr': training_args.growth_length_lr, "name": "growth_length_s"}
+            {'params': [self.growth_dir_prob_parameters], 'lr': training_args.growth_lr, "name": "growth_dir_prob_parameters"},
+            # {'params': [self.growth_directions_probabilities], 'lr': training_args.growth_lr, "name": "growth_directions_probabilities"},
+            # {'params': [self.growth_length_s], 'lr': training_args.growth_length_lr, "name": "growth_length_s"}
         ]
 
         if self.optimizer_type == "default":
@@ -567,8 +568,9 @@ class GaussianModel:
         print(differentiable_growth_dir[0])
         print(growth_dir_to_reparametrise[0]) """
 
-        reparameterised_dir = growth_dir_to_reparametrise + differentiable_growth_dir - differentiable_growth_dir.detach()
-        togrow = torch.mul(growth_dist, reparameterised_dir) / growth_dist
+        togrow = PrimitiveGrowthFunction.apply(self.growth_directions, self.growth_directions_probabilities[selected_pts_mask])
+        # reparameterised_dir = growth_dir_to_reparametrise + differentiable_growth_dir - differentiable_growth_dir.detach()
+        # togrow = torch.mul(growth_dist, reparameterised_dir) / growth_dist
 
         new_xyz = self._xyz[selected_pts_mask] + togrow
 
