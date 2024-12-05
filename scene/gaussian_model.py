@@ -209,7 +209,7 @@ class GaussianModel:
 
             {'params': [self._s_prime], 'lr': training_args.s_prime_lr, "name": "s_prime"},
             {'params': [self._v], 'lr': training_args.v_lr, "name": "v"},
-            {'params': [self.growth_dir_prob_parameters], 'lr': training_args.growth_lr, "name": "growth_dir_prob_parameters"},
+            {'params': [self.growth_directions_probabilities], 'lr': training_args.growth_lr, "name": "growth_directions_probabilities"},
             # {'params': [self.growth_directions_probabilities], 'lr': training_args.growth_lr, "name": "growth_directions_probabilities"},
             # {'params': [self.growth_length_s], 'lr': training_args.growth_length_lr, "name": "growth_length_s"}
         ]
@@ -560,7 +560,7 @@ class GaussianModel:
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
 
-        growth_dist = self.calc_growth_dist(selected_pts_mask)
+        # growth_dist = self.calc_growth_dist(selected_pts_mask)
         differentiable_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
         growth_dir_to_reparametrise = self.calc_growth_dir_repara(selected_pts_mask)
 
