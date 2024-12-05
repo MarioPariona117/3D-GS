@@ -190,6 +190,8 @@ class GaussianModel:
 
         self.just_split_mask = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
         self._newly_split = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
+        print('create_from_pcd')
+        print(self._newly_split.sum())
         self.just_cloned_mask = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
         self._newly_cloned = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
 
@@ -433,6 +435,8 @@ class GaussianModel:
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self._newly_split = self._newly_split[valid_points_mask]
+        print('prune_points')
+        print(self._newly_split.sum())
         self._newly_cloned = self._newly_cloned[valid_points_mask]
         self.just_cloned_mask = self.just_cloned_mask[valid_points_mask]
 
@@ -492,6 +496,8 @@ class GaussianModel:
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self._newly_split = torch.cat((self._newly_split, new_newly_split), dim = 0)
+        print('densification_postfix')
+        print(self._newly_split.sum())
         self._newly_cloned = torch.cat((self._newly_cloned, new_newly_cloned), dim = 0)
 
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))
@@ -613,6 +619,8 @@ class GaussianModel:
     def handle_split_gradients(self, new_xyz, new_scaling, selected_pts_mask, N):
         new_xyz.backward(torch.ones_like(new_xyz))
         self.d_xyz_d_s_prime = self._s_prime.grad[selected_pts_mask].repeat(N, 1)
+        print('handle_split_gradients d_xyz_d_s_prime')
+        print(self.d_xyz_d_s_prime.shape)
 
         new_scaling.backward(torch.ones_like(new_scaling))
         self.d_xyz_d_v = self._v.grad[selected_pts_mask].repeat(N, 1)
@@ -694,6 +702,7 @@ class GaussianModel:
         self._newly_cloned = torch.zeros(self._newly_cloned.size(), device = "cuda", dtype = torch.bool)
 
     def calc_split_grads(self):
+        print('calc_split_grads')
         print(self._newly_split.sum())
         fresh_xyzprime_grads = self._xyz.grad[self._newly_split].unsqueeze(1)
 
