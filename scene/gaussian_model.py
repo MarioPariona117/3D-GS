@@ -661,7 +661,11 @@ class GaussianModel:
 
         self.d_togrow_d_growth_directions_probabilities = torch.transpose(torch.cat((d_togrow_x_d_growth_directions_probabilities, d_togrow_y_d_growth_directions_probabilities, d_togrow_z_d_growth_directions_probabilities), dim = 0), 0, 1) # N x 3 x 128
         print(self.d_togrow_d_growth_directions_probabilities.size())
-
+        print(self.d_togrow_d_growth_directions_probabilities[0])
+        self.d_togrow_d_growth_directions_probabilities = torch.autograd.grad(outputs=togrow, inputs=d_togrow_x_d_growth_directions_probabilities, retain_graph=True)
+        print(self.d_togrow_d_growth_directions_probabilities.size())
+        print(self.d_togrow_d_growth_directions_probabilities[0])
+        exit(0)
         self.d_togrow_d_growth_length_s = torch.transpose(torch.cat((d_togrow_x_d_growth_length_s, d_togrow_y_d_growth_length_s, d_togrow_z_d_growth_length_s), dim = 0), 0, 1) # N x 3 x 1
         print(self.d_togrow_d_growth_length_s.size())
 
