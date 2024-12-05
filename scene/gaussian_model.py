@@ -485,7 +485,8 @@ class GaussianModel:
         self._v = optimizable_tensors["v"]
             
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
-        self.growth_length_s = optimizable_tensors['growth_length_s']
+        self.growth_length_s = 1
+        # optimizable_tensors['growth_length_s']
 
         # self._newly_cloned = torch.cat((self._newly_cloned, new_newly_cloned), dim = 0)
 
