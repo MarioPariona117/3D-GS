@@ -182,7 +182,8 @@ class GaussianModel:
         
         # Learnable parameters for cloning operations
         self.initialize_growth_directions(fused_point_cloud.shape[0])
-        self.growth_length_s = nn.Parameter(torch.full([fused_point_cloud.shape[0], 1], 1 / 100, device="cuda", requires_grad=True))
+        self.growth_length_s = (torch.full([fused_point_cloud.shape[0], 1], 1 / 100, device="cuda"))
+        # self.growth_length_s = nn.Parameter(torch.full([fused_point_cloud.shape[0], 1], 1 / 100, device="cuda", requires_grad=True))
 
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
         self._s_prime = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
@@ -266,8 +267,8 @@ class GaussianModel:
 
         for i in range(self.growth_directions_probabilities.shape[1]):
             l.append(f'growth_directions_probabilities_{i}')
-        for i in range(self.growth_length_s.shape[1]):
-            l.append(f'growth_length_s_{i}')
+        # for i in range(self.growth_length_s.shape[1]):
+        #     l.append(f'growth_length_s_{i}')
         return l
 
     def save_ply(self, path):
@@ -485,7 +486,7 @@ class GaussianModel:
         self._v = optimizable_tensors["v"]
             
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
-        self.growth_length_s = 1
+        self.growth_length_s = torch.ones_like(self._xyz.size()[0]) * 1 / 100
         # optimizable_tensors['growth_length_s']
 
         # self._newly_cloned = torch.cat((self._newly_cloned, new_newly_cloned), dim = 0)
