@@ -1,4 +1,4 @@
-\documentclass[12pt]{report}
+\documentclass[11pt]{report}
 \usepackage{xcolor}
 \usepackage{titlesec}
 \usepackage{graphicx}
@@ -6,7 +6,10 @@
 \usepackage{subcaption}
 \usepackage{etoolbox}
 \usepackage{pgfkeys, pgfplots, filecontents}
+\usepackage{booktabs}
+\usepackage{multirow}
 \usepackage{filecontents}
+\usepackage[a4paper, margin=1in]{geometry}
 
 % Define colors for chapter and section titles
 \definecolor{blue}{rgb}{0.0, 0.0, 1.0}
@@ -92,29 +95,61 @@ For the MipNeRF360 outdoor dataset, we used the Bicycle and Stump scenes. From t
 
 [Big picture of as Figure 5 in 3DGS]
 
-\begin{figure}[h]
-    \centering
-    \begin{tabular}{ccc}
-        \textbf{Ground Truth} & \textbf{3D-GS} & \textbf{Ours} \\ \hline
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/stump/test/ours_30000/gt/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/stump/test/ours_30000/renders/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/stump/test/ours_30000/renders/00000.png} \\
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/counter/test/ours_30000/gt/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/counter/test/ours_30000/renders/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/counter/test/ours_30000/renders/00000.png} \\
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/playroom/test/ours_30000/gt/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/playroom/test/ours_30000/renders/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/playroom/test/ours_30000/renders/00000.png} \\
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/horns/test/ours_30000/gt/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/horns/test/ours_30000/renders/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/horns/test/ours_30000/renders/00000.png} \\
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/trex/test/ours_30000/gt/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/trex/test/ours_30000/renders/00000.png} & 
-        \includegraphics[width=0.3\textwidth]{../o-3dgs/eval/trex/test/ours_30000/renders/00000.png} \\
-    \end{tabular}
-    \caption{Comparison of Ground Truth, 3D-GS, and Our Results for Different Scenes.}
-    \label{fig:comparison_tabular_loop}
-\end{figure}
+% \begin{table}[h!]
+%     \centering
+%     \begin{tabular}{llccccc}
+%     \toprule
+%     \textbf{Category} & \textbf{Scene} & \textbf{Method} & \textbf{SSIM$\uparrow$} & \textbf{PSNR$\uparrow$} & \textbf{LPIPS$\downarrow$} & \textbf{Mem} \\
+%     \midrule
+    
+%     \multirow{4}{*}{\textbf{MipNeRF360 Outdoor}} & 
+%     \multirow{2}{*}{Bicycle} 
+%         & 3D-GS & 0.XXX & XX.XX & 0.XXX & XXXMB \\
+%         &  & \textbf{Our Model} & \textbf{0.XXX} & \textbf{XX.XX} & \textbf{0.XXX} & \textbf{XXXMB} \\
+%     \cmidrule{2-7}
+%     & \multirow{2}{*}{Stump} 
+%         & 3D-GS & 0.XXX & XX.XX & 0.XXX & XXXMB \\
+%         &  & \textbf{Our Model} & \textbf{0.XXX} & \textbf{XX.XX} & \textbf{0.XXX} & \textbf{XXXMB} \\
+%     \midrule
+    
+%     \multirow{2}{*}{\textbf{MipNeRF360 Indoor}} & 
+%     \multirow{2}{*}{Counter} 
+%         & 3D-GS & 0.XXX & XX.XX & 0.XXX & XXXMB \\
+%         &  & \textbf{Our Model} & \textbf{0.XXX} & \textbf{XX.XX} & \textbf{0.XXX} & \textbf{XXXMB} \\
+%     \midrule
+    
+%     \multirow{2}{*}{\textbf{Deep Blending}} & 
+%     \multirow{2}{*}{Playroom} 
+%         & 3D-GS & 0.XXX & XX.XX & 0.XXX & XXXMB \\
+%         &  & \textbf{Our Model} & \textbf{0.XXX} & \textbf{XX.XX} & \textbf{0.XXX} & \textbf{XXXMB} \\
+%     \midrule
+    
+%     \multirow{4}{*}{\textbf{Tanks and Temples}} & 
+%     \multirow{2}{*}{Truck} 
+%         & 3D-GS & 0.XXX & XX.XX & 0.XXX & XXXMB \\
+%         &  & \textbf{Our Model} & \textbf{0.XXX} & \textbf{XX.XX} & \textbf{0.XXX} & \textbf{XXXMB} \\
+%     \cmidrule{2-7}
+%     & \multirow{2}{*}{Train} 
+%         & 3D-GS & 0.XXX & XX.XX & 0.XXX & XXXMB \\
+%         &  & \textbf{Our Model} & \textbf{0.XXX} & \textbf{XX.XX} & \textbf{0.XXX} & \textbf{XXXMB} \\
+%     \midrule
+    
+%     \multirow{4}{*}{\textbf{LLFF}} & 
+%     \multirow{2}{*}{Horns (62 images)} 
+%         & 3D-GS & 0.XXX & XX.XX & 0.XXX & XXXMB \\
+%         &  & \textbf{Our Model} & \textbf{0.XXX} & \textbf{XX.XX} & \textbf{0.XXX} & \textbf{XXXMB} \\
+%     \cmidrule{2-7}
+%     & \multirow{2}{*}{T-rex (55 images)} 
+%         & 3D-GS & 0.XXX & XX.XX & 0.XXX & XXXMB \\
+%         &  & \textbf{Our Model} & \textbf{0.XXX} & \textbf{XX.XX} & \textbf{0.XXX} & \textbf{XXXMB} \\
+%     \bottomrule
+%     \end{tabular}
+%     \caption{Comparison of 3D-GS and Our Model across different scenes and categories. Metrics: SSIM, PSNR, LPIPS, and Memory Usage. Arrows indicate the desired trend for each metric.}
+%     \label{tab:comparison}
+%     \end{table}
+
+\include{aux/comparison}
+\include{aux/metrics}
 % \begin{figure}[h]
 %     \centering
 %     \newcommand{\mymatrixcontent}{} % Initialize an empty macro for storing content
