@@ -187,11 +187,11 @@ class GaussianModel:
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
         self._s_prime = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
         self._v = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
+        self.d_xyz_d_s_prime = torch.zeros((fused_point_cloud.shape[0], 1), device = "cuda")
+        self.d_xyz_d_v = torch.zeros((fused_point_cloud.shape[0], 1), device = "cuda")
 
         self.just_split_mask = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
         self._newly_split = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
-        print('create_from_pcd')
-        print(self._newly_split.sum())
         self.just_cloned_mask = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
         self._newly_cloned = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
 
@@ -435,17 +435,16 @@ class GaussianModel:
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self._newly_split = self._newly_split[valid_points_mask]
-        print('prune_points')
-        print(self._newly_split.sum())
         self._newly_cloned = self._newly_cloned[valid_points_mask]
         self.just_cloned_mask = self.just_cloned_mask[valid_points_mask]
+        self.d_xyz_d_s_prime = self.d_xyz_d_s_prime[valid_points_mask]
+        self.d_xyz_d_v = self.d_xyz_d_v[valid_points_mask]
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
 
         self.denom = self.denom[valid_points_mask]
         self.max_radii2D = self.max_radii2D[valid_points_mask]
         self.tmp_radii = self.tmp_radii[valid_points_mask]
-        print(f"Valid pts mask: {valid_points_mask.sum()}")
 
     def cat_tensors_to_optimizer(self, tensors_dict):
         """
@@ -496,8 +495,6 @@ class GaussianModel:
         self.growth_length_s = optimizable_tensors['growth_length_s']
 
         self._newly_split = torch.cat((self._newly_split, new_newly_split), dim = 0)
-        print('densification_postfix')
-        print(self._newly_split.sum())
         self._newly_cloned = torch.cat((self._newly_cloned, new_newly_cloned), dim = 0)
 
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))
@@ -507,19 +504,25 @@ class GaussianModel:
     
     def del_mu(self, selected_pts_mask, N):
         # Get matrix from quaternion.
-        rots = build_rotation(self._rotation[selected_pts_mask]).repeat(N,1,1)
+        rots = build_rotation(self._rotation[selected_pts_mask])
 
         stds = self.get_scaling[selected_pts_mask]
+        print(torch.max(stds))
         S = stds / (1 + torch.exp(-self._s_prime[selected_pts_mask]))
-        # first half is for del_mu, second half is for -del_mu
-        S = torch.cat((S, -S), dim=0)
 
         delta_mu = torch.bmm(
             rots,
             S.unsqueeze(-1)
         ).squeeze(-1)
 
-        return delta_mu
+        delta_mu.backward(torch.ones_like(delta_mu))
+        rest, gradient = self._s_prime.grad, self._s_prime.grad[selected_pts_mask]
+
+        # first half is for del_mu, second half is for -del_mu
+        S = torch.cat((S, -S), dim=0)
+        gradient = torch.cat((rest, gradient, -gradient), dim=0)
+
+        return delta_mu.squeeze(-1).repeat(N, 1), gradient
 
     def densify_and_split(self, grads, grad_threshold, scene_extent, N=2):
         # Split using mu +- del(mu)
@@ -535,8 +538,8 @@ class GaussianModel:
         selected_pts_mask = torch.where(padded_grad >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values > self.percent_dense*scene_extent)
-        print(f"Selected pts mask: {selected_pts_mask.sum()}")
-        delta_mu = self.del_mu(selected_pts_mask, N).squeeze(-1)
+
+        delta_mu, gradient = self.del_mu(selected_pts_mask, N)
         xyz = self.get_xyz[selected_pts_mask].repeat(N, 1)
         new_xyz = delta_mu + xyz
 
@@ -544,7 +547,7 @@ class GaussianModel:
         phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
         new_scaling = self.scaling_inverse_activation(self.get_scaling[selected_pts_mask].repeat(N,1) / phi)
 
-        new_newly_split = self.handle_split_gradients(new_xyz, new_scaling, selected_pts_mask, N)
+        new_newly_split = self.handle_split_gradients(gradient, new_scaling, selected_pts_mask, N)
 
         # maintain rotation, features, opacity, radii, s_prime
         new_rotation = self._rotation[selected_pts_mask].repeat(N,1)
@@ -571,7 +574,7 @@ class GaussianModel:
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
-        print(f"Selected pts mask: {selected_pts_mask.sum()}")
+
         growth_dist = self.calc_growth_dist(selected_pts_mask)
         differentiable_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
         growth_dir_to_reparametrise = self.calc_growth_dir_repara(selected_pts_mask)
@@ -596,6 +599,8 @@ class GaussianModel:
         new_growth_length_s = self.growth_length_s[selected_pts_mask]
 
         new_newly_split = torch.zeros(new_rotation.size()[0], device = "cuda", dtype = torch.bool)
+        self.d_xyz_d_s_prime = torch.concat((self.d_xyz_d_s_prime, torch.zeros((new_newly_split.shape[0], 1), device = "cuda")))
+        self.d_xyz_d_v = torch.concat((self.d_xyz_d_v, torch.zeros((new_newly_split.shape[0], 1), device = "cuda")))
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_split, new_newly_cloned)
 
@@ -616,16 +621,13 @@ class GaussianModel:
         
         return new_newly_cloned
 
-    def handle_split_gradients(self, new_xyz, new_scaling, selected_pts_mask, N):
-        new_xyz.backward(torch.ones_like(new_xyz))
-        self.d_xyz_d_s_prime = self._s_prime.grad[selected_pts_mask].repeat(N, 1)
-        print('handle_split_gradients d_xyz_d_s_prime')
-        print(self.d_xyz_d_s_prime.shape)
+    def handle_split_gradients(self, gradient, new_scaling, selected_pts_mask, N):
+        self.d_xyz_d_s_prime = gradient
 
         new_scaling.backward(torch.ones_like(new_scaling))
-        self.d_xyz_d_v = self._v.grad[selected_pts_mask].repeat(N, 1)
+        self.d_xyz_d_v = torch.concat((self._v.grad, self._v.grad[selected_pts_mask].repeat(N, 1)))
 
-        new_newly_split = torch.ones(new_xyz.size()[0], device = "cuda", dtype = torch.bool)
+        new_newly_split = torch.ones(new_scaling.size()[0], device = "cuda", dtype = torch.bool)
 
         return new_newly_split
 
@@ -700,10 +702,9 @@ class GaussianModel:
         self.calc_clone_grads()
         self.calc_split_grads()
         self._newly_cloned = torch.zeros(self._newly_cloned.size(), device = "cuda", dtype = torch.bool)
+        self._newly_split = torch.zeros(self._newly_split.size(), device = "cuda", dtype = torch.bool)
 
     def calc_split_grads(self):
-        print('calc_split_grads')
-        print(self._newly_split.sum())
         fresh_xyzprime_grads = self._xyz.grad[self._newly_split].unsqueeze(1)
 
         # n x 1 = n x 3 * n x 3 x 1 * n x 1
@@ -712,18 +713,18 @@ class GaussianModel:
         # dloss/ds = dloss/dx' * (dx'/ds_x' * ds_x'/ds = dx'/ds)
         # n x 1 x 1 = n x 1 x 3 * n x 3 x 1
         # print(torch.matmul(fresh_xyzprime_grads, self.d_xyz_d_s_prime.expand(-1, 3).unsqueeze(-1)))
-        d_loss_d_s_prime[self._newly_split] = torch.matmul(fresh_xyzprime_grads, self.d_xyz_d_s_prime.expand(-1, 3).unsqueeze(-1)).squeeze(-1)
+        d_loss_d_s_prime[self._newly_split] = torch.matmul(fresh_xyzprime_grads, self.d_xyz_d_s_prime[self._newly_split].expand(-1, 3).unsqueeze(-1)).squeeze(-1)
 
-        self.growth_length_s.grad = d_loss_d_s_prime
+        self._s_prime.grad = d_loss_d_s_prime
 
         # n x 1 = n x 3 * n x 3 x 1 * n x 1
         d_loss_d_v = torch.zeros((self._xyz.size()[0], 1), device = "cuda")
 
         # dloss/ds = dloss/dx' * (dx'/ds_x' * ds_x'/ds = dx'/ds)
         # n x 1 x 1 = n x 1 x 3 * n x 3 x 1
-        d_loss_d_v[self._newly_split] = torch.matmul(fresh_xyzprime_grads, self.d_xyz_d_v.expand(-1, 3).unsqueeze(-1)).squeeze(-1)
+        d_loss_d_v[self._newly_split] = torch.matmul(fresh_xyzprime_grads, self.d_xyz_d_v[self._newly_split].expand(-1, 3).unsqueeze(-1)).squeeze(-1)
 
-        self.growth_length_s.grad = d_loss_d_v
+        self._v.grad = d_loss_d_v
 
     def calc_clone_grads (self):
         fresh_xyzprime_grads = self._xyz.grad[self._newly_cloned].unsqueeze(1)
