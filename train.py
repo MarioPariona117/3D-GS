@@ -156,8 +156,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print(gaussians.growth_directions_probabilities.grad) """
 
                 gaussians.calc_evolutive_density_control_param_grads()
-                """ print(torch.max(gaussians.growth_directions_probabilities.grad))
-                print(torch.max(gaussians.growth_length_s.grad)) """
+                print(torch.max(gaussians.growth_directions_probabilities.grad))
+                print(torch.max(gaussians.growth_length_s.grad))
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
