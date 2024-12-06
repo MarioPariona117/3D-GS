@@ -164,10 +164,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print((gaussians._s_prime / gaussians._s_prime.grad).sum())
                 print('v')
                 print((gaussians._v / gaussians._v.grad).sum()) """
-                print(f"growth_probs: {torch.max(gaussians.growth_directions_probabilities.grad) / torch.max(gaussians.growth_directions_probabilities)}")
-                print(f"growth_len: {torch.max(gaussians.growth_length_s.grad) / torch.max(gaussians.growth_length_s)}")
-                print(f"s_prime: {torch.max(gaussians._s_prime.grad) / torch.max(gaussians._s_prime)}")
-                print(f"v: {torch.max(gaussians._v.grad) / torch.max(gaussians._v)}")
+                
+                print(f"growth_probs: {torch.max(gaussians.growth_directions_probabilities.grad / gaussians.growth_directions_probabilities)}")
+                print(f"growth_len: {torch.max(gaussians.growth_length_s.grad / gaussians.growth_length_s)}")
+                print(f"s_prime: {torch.max(gaussians._s_prime.grad / gaussians._s_prime)}")
+                print(f"v: {torch.max(gaussians._v.grad / gaussians._v)}")
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
