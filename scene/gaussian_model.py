@@ -29,7 +29,7 @@ try:
 except:
     pass
 
-class GaussianModel:
+class GaussianModel(torch.nn.Module):
 
     def setup_functions(self):
         def build_covariance_from_scaling_rotation(scaling, scaling_modifier, rotation):
@@ -50,6 +50,7 @@ class GaussianModel:
 
 
     def __init__(self, sh_degree, optimizer_type="default", growth_directions_count = 128):
+        super(GaussianModel, self).__init__()
         self.active_sh_degree = 0
         self.optimizer_type = optimizer_type
         self.max_sh_degree = sh_degree  
@@ -490,7 +491,7 @@ class GaussianModel:
         self.growth_directions_probabilities = optimizable_tensors['growth_directions_probabilities']
         self.growth_length_s = torch.ones([self._xyz.size()[0],1], device = 'cuda') * 1 / 100
         # optimizable_tensors['growth_length_s']
-        
+
         # self._newly_cloned = torch.cat((self._newly_cloned, new_newly_cloned), dim = 0)
 
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))

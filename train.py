@@ -146,7 +146,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             loss.backward(retain_graph = True)
             # loss.backward()
             if iteration == 601:
-                torchviz.make_dot(loss).render("graphviz", format="pdf")
+                torchviz.make_dot(loss, params=dict(gaussians.named_parameters()), show_attrs=True, show_saved=True).render("graphviz", format="pdf")
             # print(gaussians.growth_directions_probabilities.grad)
             # print(gaussians._xyz.grad)
             return image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth
