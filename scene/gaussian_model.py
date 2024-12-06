@@ -502,27 +502,23 @@ class GaussianModel:
         self.denom = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
         self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
     
-    def del_mu(self, selected_pts_mask, N):
+    def del_mu(self, selected_pts_mask, N, eps=1e-3):
         # Get matrix from quaternion.
-        rots = build_rotation(self._rotation[selected_pts_mask])
+        rots = build_rotation(self._rotation[selected_pts_mask]).repeat(N, 1, 1)
 
         stds = self.get_scaling[selected_pts_mask]
-        print(torch.max(stds))
+
         S = stds / (1 + torch.exp(-self._s_prime[selected_pts_mask]))
+
+        # first half is for del_mu, second half is for -del_mu
+        S = torch.cat((S*(1+eps), -S), dim=0)
 
         delta_mu = torch.bmm(
             rots,
             S.unsqueeze(-1)
         ).squeeze(-1)
 
-        delta_mu.backward(torch.ones_like(delta_mu))
-        rest, gradient = self._s_prime.grad, self._s_prime.grad[selected_pts_mask]
-
-        # first half is for del_mu, second half is for -del_mu
-        S = torch.cat((S, -S), dim=0)
-        gradient = torch.cat((rest, gradient, -gradient), dim=0)
-
-        return delta_mu.squeeze(-1).repeat(N, 1), gradient
+        return delta_mu
 
     def densify_and_split(self, grads, grad_threshold, scene_extent, N=2):
         # Split using mu +- del(mu)
@@ -539,9 +535,13 @@ class GaussianModel:
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values > self.percent_dense*scene_extent)
 
-        delta_mu, gradient = self.del_mu(selected_pts_mask, N)
+        delta_mu = self.del_mu(selected_pts_mask, N)
         xyz = self.get_xyz[selected_pts_mask].repeat(N, 1)
         new_xyz = delta_mu + xyz
+        
+        new_xyz.backward(torch.ones_like(new_xyz))
+        gradient = torch.concat((self._s_prime.grad, self._s_prime.grad[selected_pts_mask], self._s_prime.grad[selected_pts_mask]))
+        # print(torch.max(gradient))
 
         new_v = self._v[selected_pts_mask].repeat(N, 1)
         phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
