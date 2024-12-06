@@ -156,19 +156,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print(gaussians.growth_directions_probabilities.grad) """
 
                 gaussians.calc_evolutive_density_control_param_grads()
-                """ print('growth probs')
-                print((gaussians.growth_directions_probabilities / gaussians.growth_directions_probabilities.grad).sum())
-                print('growth len')
-                print((gaussians.growth_length_s / gaussians.growth_length_s.grad).sum())
-                print('s prime')
-                print((gaussians._s_prime / gaussians._s_prime.grad).sum())
-                print('v')
-                print((gaussians._v / gaussians._v.grad).sum()) """
                 
-                print(f"growth_probs: {torch.max(torch.nan_to_num(gaussians.growth_directions_probabilities.grad / gaussians.growth_directions_probabilities))}")
-                print(f"growth_len: {torch.max(torch.nan_to_num(gaussians.growth_length_s.grad / gaussians.growth_length_s))}")
-                print(f"s_prime: {torch.max(torch.nan_to_num(gaussians._s_prime.grad / gaussians._s_prime))}")
-                print(f"v: {torch.max(torch.nan_to_num(gaussians._v.grad / gaussians._v))}")
+                print(f"xyz: {torch.max(torch.nan_to_num(gaussians._xyz.grad / gaussians.d_xyz_d_s_prime, nan=0.0, posinf = 0.0, neginf = 0.0))}")
+
+                print(f"growth_probs: {torch.max(torch.nan_to_num(gaussians.growth_directions_probabilities.grad / gaussians.growth_directions_probabilities, nan=0.0, posinf = 0.0, neginf = 0.0))}")
+                print(f"growth_len: {torch.max(torch.nan_to_num(gaussians.growth_length_s.grad / gaussians.growth_length_s, nan=0.0, posinf = 0.0, neginf = 0.0))}")
+                print(f"s_prime: {torch.max(torch.nan_to_num(gaussians._s_prime.grad / gaussians._s_prime, nan=0.0, posinf = 0.0, neginf = 0.0))}")
+                print(f"v: {torch.max(torch.nan_to_num(gaussians._v.grad / gaussians._v, nan=0.0, posinf = 0.0, neginf = 0.0))}")
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
