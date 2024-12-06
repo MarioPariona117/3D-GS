@@ -630,7 +630,8 @@ class GaussianModel:
         # Create new points and find d(new_xyz)/d(s_prime)
         new_xyz = self.del_mu(selected_pts_mask) + self.get_xyz[selected_pts_mask].repeat(2, 1)
         new_xyz.backward(torch.ones_like(new_xyz))
-        self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad.detach().clone(), self._s_prime.grad[selected_pts_mask].detach().clone(), -self._s_prime.grad[selected_pts_mask].detach().clone()))
+        self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad.detach().clone(), self._s_prime.grad[selected_pts_mask].detach().clone().repeat(2,1)))
+        #self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad.detach().clone(), self._s_prime.grad[selected_pts_mask].detach().clone(), -self._s_prime.grad[selected_pts_mask].detach().clone()))
         new_s_prime = self._s_prime[selected_pts_mask].repeat(2, 1)
 
         print("______________d_xyz_d_s_prime")
