@@ -153,7 +153,8 @@ class GaussianModel:
 
     def initialise_epo_split(self, initialisation_points_count):
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
-        self._s_prime = nn.Parameter(torch.zeros((initialisation_points_count, 1), device="cuda"), requires_grad=True)
+        self._s_prime = nn.Parameter(torch.empty((initialisation_points_count, 1), device="cuda"), requires_grad=True)
+        torch.nn.init.xavier_normal_(self._s_prime, gain=nn.init.calculate_gain('sigmoid'))
         self._v = nn.Parameter(torch.zeros((initialisation_points_count, 1), device="cuda"), requires_grad=True)
         # Gradients for thos values
         self.d_xyz_d_s_prime = torch.zeros((initialisation_points_count, 1), device = "cuda")
@@ -575,11 +576,11 @@ class GaussianModel:
         self.denom = torch.zeros((self.get_num_points, 1), device="cuda")
         self.max_radii2D = torch.zeros((self.get_num_points), device="cuda")
     
-    def del_mu(self, selected_pts_mask, eps=1e-5):
+    def del_mu(self, selected_pts_mask, eps=1e-5, const=1e-2):
         # Get matrix from quaternion.
         rots = build_rotation(self._rotation[selected_pts_mask]).repeat(2, 1, 1)
 
-        stds = self.get_scaling[selected_pts_mask]
+        stds = self.get_scaling[selected_pts_mask] * const
 
         S = stds / (1 + torch.exp(-self._s_prime[selected_pts_mask]))
 
@@ -587,7 +588,14 @@ class GaussianModel:
         # Multiply by 1+eps to preserve gradients (zeroes out otherwise)
         S = torch.cat((S*(1+eps), -S), dim=0)
 
-        return torch.bmm(rots, S.unsqueeze(-1)).squeeze(-1)
+        tmp = torch.bmm(rots, S.unsqueeze(-1)).squeeze(-1)
+        print("_____________")
+        print(torch.mean(self._s_prime))
+        print(torch.max(self._s_prime))
+        print(torch.min(self._s_prime))
+        print("_____________")
+
+        return tmp
 
     def densify_and_split(self, grads, grad_threshold, scene_extent):
         """Perform EPO split
@@ -611,7 +619,7 @@ class GaussianModel:
         # Create new points and find d(new_xyz)/d(s_prime)
         new_xyz = self.del_mu(selected_pts_mask) + self.get_xyz[selected_pts_mask].repeat(2, 1)
         new_xyz.backward(torch.ones_like(new_xyz))
-        self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad.detach().clone(), self._s_prime.grad[selected_pts_mask].detach().clone().repeat(2, 1)))
+        self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad.detach().clone(), self._s_prime.grad[selected_pts_mask].detach().clone(), -self._s_prime.grad[selected_pts_mask].detach().clone()))
         new_s_prime = self._s_prime[selected_pts_mask].repeat(2, 1)
 
         new_v = self._v[selected_pts_mask].repeat(2, 1)
