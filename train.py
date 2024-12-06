@@ -156,18 +156,18 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print(gaussians.growth_directions_probabilities.grad) """
 
                 gaussians.calc_evolutive_density_control_param_grads()
-                print('growth probs')
+                """ print('growth probs')
                 print((gaussians.growth_directions_probabilities / gaussians.growth_directions_probabilities.grad).sum())
                 print('growth len')
                 print((gaussians.growth_length_s / gaussians.growth_length_s.grad).sum())
                 print('s prime')
                 print((gaussians._s_prime / gaussians._s_prime.grad).sum())
                 print('v')
-                print((gaussians._v / gaussians._v.grad).sum())
-                # print(f"growth_probs: {torch.max(gaussians.growth_directions_probabilities.grad)}")
-                # print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
-                # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
-                # print(f"v: {torch.max(gaussians._v.grad)}")
+                print((gaussians._v / gaussians._v.grad).sum()) """
+                print(f"growth_probs: {torch.max(gaussians.growth_directions_probabilities.grad)}")
+                print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
+                print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
+                print(f"v: {torch.max(gaussians._v.grad)}")
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
