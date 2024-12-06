@@ -589,11 +589,22 @@ class GaussianModel:
         S = torch.cat((S*(1+eps), -S), dim=0)
 
         tmp = torch.bmm(rots, S.unsqueeze(-1)).squeeze(-1)
-        print("_____________")
+        print("______________s_prime")
         print(torch.mean(self._s_prime))
         print(torch.max(self._s_prime))
         print(torch.min(self._s_prime))
         print("_____________")
+        print("______________v")
+        print(torch.mean(self._v))
+        print(torch.max(self._v))
+        print(torch.min(self._v))
+        print("_____________")
+        print("______________gls")
+        print(torch.mean(self._growth_length_s))
+        print(torch.max(self._growth_length_s))
+        print(torch.min(self._growth_length_s))
+        print("_____________")
+
 
         return tmp
 
