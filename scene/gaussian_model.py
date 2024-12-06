@@ -185,8 +185,8 @@ class GaussianModel:
         self.growth_length_s = nn.Parameter(torch.full([fused_point_cloud.shape[0], 1], 1 / 100, device="cuda", requires_grad=True))
 
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
-        self._s_prime = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
-        self._v = nn.Parameter(torch.empty((fused_point_cloud.shape[0], 1), device="cuda"))
+        self._s_prime = nn.Parameter(torch.zeros((fused_point_cloud.shape[0], 1), device="cuda"), requires_grad=True)
+        self._v = nn.Parameter(torch.zeros((fused_point_cloud.shape[0], 1), device="cuda"), requires_grad=True)
         self.d_xyz_d_s_prime = torch.zeros((fused_point_cloud.shape[0], 1), device = "cuda")
         self.d_xyz_d_v = torch.zeros((fused_point_cloud.shape[0], 1), device = "cuda")
 
@@ -195,9 +195,6 @@ class GaussianModel:
         self.just_cloned_mask = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
         self._newly_cloned = torch.zeros(fused_point_cloud.shape[0], device = "cuda", dtype = torch.bool)
 
-        # Xavier initialization (TODO: ablation test against uniform initialisation with grads)
-        nn.init.xavier_uniform_(self._s_prime)
-        nn.init.xavier_uniform_(self._v)
 
     def training_setup(self, training_args: OptimizationParams):
         self.percent_dense = training_args.percent_dense
@@ -706,6 +703,7 @@ class GaussianModel:
 
     def calc_split_grads(self):
         fresh_xyzprime_grads = self._xyz.grad[self._newly_split].unsqueeze(1)
+        fresh_scale_grads = self._scaling.grad[self._newly_split].unsqueeze(1)
 
         # n x 1 = n x 3 * n x 3 x 1 * n x 1
         d_loss_d_s_prime = torch.zeros((self._xyz.size()[0], 1), device = "cuda")
@@ -722,7 +720,7 @@ class GaussianModel:
 
         # dloss/ds = dloss/dx' * (dx'/ds_x' * ds_x'/ds = dx'/ds)
         # n x 1 x 1 = n x 1 x 3 * n x 3 x 1
-        d_loss_d_v[self._newly_split] = torch.matmul(fresh_xyzprime_grads, self.d_xyz_d_v[self._newly_split].expand(-1, 3).unsqueeze(-1)).squeeze(-1)
+        d_loss_d_v[self._newly_split] = torch.matmul(fresh_scale_grads, self.d_xyz_d_v[self._newly_split].expand(-1, 3).unsqueeze(-1)).squeeze(-1)
 
         self._v.grad = d_loss_d_v
 
