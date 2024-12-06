@@ -633,6 +633,12 @@ class GaussianModel:
         self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad.detach().clone(), self._s_prime.grad[selected_pts_mask].detach().clone(), -self._s_prime.grad[selected_pts_mask].detach().clone()))
         new_s_prime = self._s_prime[selected_pts_mask].repeat(2, 1)
 
+        print("______________d_xyz_d_s_prime")
+        print(torch.mean(self.d_xyz_d_s_prime))
+        print(torch.max(self.d_xyz_d_s_prime))
+        print(torch.min(self.d_xyz_d_s_prime))
+        print("_____________")
+
         new_v = self._v[selected_pts_mask].repeat(2, 1)
         phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
         # Especially check activations
