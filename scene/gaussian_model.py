@@ -538,7 +538,6 @@ class GaussianModel:
         
         new_xyz.backward(torch.ones_like(new_xyz))
         gradient = torch.concat((self._s_prime.grad, self._s_prime.grad[selected_pts_mask], self._s_prime.grad[selected_pts_mask]))
-        # print(torch.max(gradient))
 
         new_v = self._v[selected_pts_mask].repeat(N, 1)
         phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
@@ -667,7 +666,6 @@ class GaussianModel:
         self.growth_directions_probabilities = nn.Parameter(torch.full(
             [l, self.growth_directions_count], 1 / self.growth_directions_count, device="cuda", requires_grad=True)
         )
-        # nn.init.xavier_uniform_(self.growth_directions_probabilities)
 
     def calc_growth_dir_soft(self, selected_pts_mask, temperature=1e-2):
         index_soft = torch.nn.functional.softmax(self.growth_directions_probabilities[selected_pts_mask] / temperature, dim = 1)
