@@ -154,6 +154,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth = render_and_calc_loss()
                 """ print(gaussians._xyz.grad)
                 print(gaussians.growth_directions_probabilities.grad) """
+
+                gaussians.calc_evolutive_density_control_param_grads()
                 print('growth probs')
                 print((gaussians.growth_directions_probabilities / gaussians.growth_directions_probabilities.grad).sum())
                 print('growth len')
@@ -162,8 +164,6 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print((gaussians._s_prime / gaussians._s_prime.grad).sum())
                 print('v')
                 print((gaussians._v / gaussians._v.grad).sum())
-
-                gaussians.calc_evolutive_density_control_param_grads()
                 # print(f"growth_probs: {torch.max(gaussians.growth_directions_probabilities.grad)}")
                 # print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
                 # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
