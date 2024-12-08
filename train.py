@@ -230,7 +230,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
     
-        if iteration == 700:
+        if iteration == 15100:
             import matplotlib.pyplot as plt
             import numpy as np
             plt.plot(np.array(list(gls_max.keys())), np.array(list(gls_max.values())), label = 'Max growth_length_s')
