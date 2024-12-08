@@ -41,6 +41,10 @@ except:
     SPARSE_ADAM_AVAILABLE = False
 
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
+    from collections import defaultdict
+    gls_max = defaultdict(float)
+    gls_mean = defaultdict(float)
+    gls_min = defaultdict(float)
 
     if not SPARSE_ADAM_AVAILABLE and opt.optimizer_type == "sparse_adam":
         sys.exit(f"Trying to use sparse adam but it is not installed, please install the correct rasterizer using pip install [3dgs_accel].")
@@ -163,6 +167,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
+            
+            gls_max[iteration] = torch.max(gaussians._growth_length_s)
+            gls_mean[iteration] = torch.mean(gaussians._growth_length_s)
+            gls_min[iteration] = torch.min(gaussians._growth_length_s)
 
         iter_end.record()
 
@@ -198,6 +206,17 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
+    
+    import matplotlib.pyplot as plt
+    import numpy as np
+    plt.plot(np.array(list(gls_max.keys())), np.array(list(gls_max.values()), label = 'Max growth_length_s'))
+    plt.plot(np.array(list(gls_mean.keys())), np.array(list(gls_mean.values()), label = 'Mean growth_length_s'))
+    plt.plot(np.array(list(gls_min.keys())), np.array(list(gls_min.values()), label = 'Min growth_length_s'))
+    plt.xlabel('Iteration')
+    plt.ylabel('Value')
+    plt.savefig('growth_length_s.png')
+    plt.savefig('growth_length_s.pdf')
+
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
