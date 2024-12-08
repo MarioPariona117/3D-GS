@@ -176,9 +176,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 # print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
                 # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
                 # print(f"v: {torch.max(gaussians._v.grad)}")
-                gls_max[iteration] = torch.max(gaussians._growth_length_s).cpu()
-                gls_mean[iteration] = torch.mean(gaussians._growth_length_s).cpu()
-                gls_min[iteration] = torch.min(gaussians._growth_length_s).cpu()
+                gls_max[iteration] = torch.max(gaussians._growth_length_s).cpu().detach().clone()
+                gls_mean[iteration] = torch.mean(gaussians._growth_length_s).cpu().detach().clone()
+                gls_min[iteration] = torch.min(gaussians._growth_length_s).cpu().detach().clone()
 
                 """ gdp_max[iteration] = torch.max(gaussians._growth_directions_probabilities)
                 gdp_mean[iteration] = torch.mean(gaussians._growth_directions_probabilities)
@@ -230,7 +230,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
     
-        if iteration == 15000:
+        if iteration == 700:
             import matplotlib.pyplot as plt
             import numpy as np
             plt.plot(np.array(list(gls_max.keys())), np.array(list(gls_max.values())), label = 'Max growth_length_s')
