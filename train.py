@@ -42,9 +42,10 @@ except:
 
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
     from collections import defaultdict
-    """ gls_max = defaultdict(float)
+    gls_max = defaultdict(float)
     gls_mean = defaultdict(float)
-    gls_min = defaultdict(float) """
+    gls_min = defaultdict(float)
+    gls_just_cloned_mean = defaultdict(float)
 
     """ gdp_max = defaultdict(float)
     gdp_mean = defaultdict(float)
@@ -54,9 +55,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     sp_mean = defaultdict(float)
     sp_min = defaultdict(float) """
 
-    v_max = defaultdict(float)
+    """ v_max = defaultdict(float)
     v_mean = defaultdict(float)
-    v_min = defaultdict(float)
+    v_min = defaultdict(float) """
 
     if not SPARSE_ADAM_AVAILABLE and opt.optimizer_type == "sparse_adam":
         sys.exit(f"Trying to use sparse adam but it is not installed, please install the correct rasterizer using pip install [3dgs_accel].")
@@ -176,10 +177,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 # print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
                 # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
                 # print(f"v: {torch.max(gaussians._v.grad)}")
-                """ gls_max[iteration] = torch.max(gaussians._growth_length_s).cpu().detach().clone()
-                gls_mean[iteration] = torch.mean(gaussians._growth_length_s).cpu().detach().clone()
-                gls_min[iteration] = torch.min(gaussians._growth_length_s).cpu().detach().clone()
-                print(gaussians._growth_length_s.mean()) """
+                gls_max[iteration] = torch.max(gaussians._growth_length_s.grad).cpu().detach().clone()
+                gls_mean[iteration] = torch.mean(gaussians._growth_length_s.grad).cpu().detach().clone()
+                gls_min[iteration] = torch.min(gaussians._growth_length_s.grad).cpu().detach().clone()
+                gls_just_cloned_mean[iteration] = torch.min(gaussians._growth_length_s[gaussians.just_cloned_mask].grad).cpu().detach().clone()
+                #print(gaussians._growth_length_s.mean())
 
                 """ gdp_max[iteration] = torch.max(gaussians._growth_directions_probabilities).cpu().detach().clone()
                 gdp_mean[iteration] = torch.mean(gaussians._growth_directions_probabilities).cpu().detach().clone()
@@ -189,9 +191,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 sp_mean[iteration] = torch.mean(gaussians._s_prime).cpu().detach().clone()
                 sp_min[iteration] = torch.min(gaussians._s_prime).cpu().detach().clone() """
 
-                v_max[iteration] = torch.max(gaussians._v).cpu().detach().clone()
+                """ v_max[iteration] = torch.max(gaussians._v).cpu().detach().clone()
                 v_mean[iteration] = torch.mean(gaussians._v).cpu().detach().clone()
-                v_min[iteration] = torch.min(gaussians._v).cpu().detach().clone()
+                v_min[iteration] = torch.min(gaussians._v).cpu().detach().clone() """
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
@@ -231,17 +233,17 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
     
-        if iteration == 15100:
+        if iteration == 710:
             import matplotlib.pyplot as plt
             import numpy as np
-            """ plt.plot(np.array(list(gls_max.keys())), np.array(list(gls_max.values())), label = 'Max growth_length_s')
+            plt.plot(np.array(list(gls_max.keys())), np.array(list(gls_max.values())), label = 'Max growth_length_s')
             plt.plot(np.array(list(gls_mean.keys())), np.array(list(gls_mean.values())), label = 'Mean growth_length_s')
             plt.plot(np.array(list(gls_min.keys())), np.array(list(gls_min.values())), label = 'Min growth_length_s')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
             plt.legend()
             plt.savefig('growth_length_s.png')
-            plt.savefig('growth_length_s.pdf') """
+            plt.savefig('growth_length_s_grad.pdf')
 
             """ plt.plot(np.array(list(gdp_max.keys())), np.array(list(gdp_max.values())), label = 'Max growth_directions_probabilities')
             plt.plot(np.array(list(gdp_mean.keys())), np.array(list(gdp_mean.values())), label = 'Mean growth_directions_probabilities')
@@ -261,14 +263,14 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.savefig('s_prime.png')
             plt.savefig('s_prime.pdf') """
 
-            plt.plot(np.array(list(v_max.keys())), np.array(list(v_max.values())), label = 'Max v')
+            """ plt.plot(np.array(list(v_max.keys())), np.array(list(v_max.values())), label = 'Max v')
             plt.plot(np.array(list(v_mean.keys())), np.array(list(v_mean.values())), label = 'Mean v')
             plt.plot(np.array(list(v_min.keys())), np.array(list(v_min.values())), label = 'Min v')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
             plt.legend()
             plt.savefig('v.png')
-            plt.savefig('v.pdf')
+            plt.savefig('v.pdf') """
 
 
 def prepare_output_and_logger(args):    
