@@ -207,15 +207,16 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
     
-    import matplotlib.pyplot as plt
-    import numpy as np
-    plt.plot(np.array(list(gls_max.keys())), np.array(list(gls_max.values()), label = 'Max growth_length_s'))
-    plt.plot(np.array(list(gls_mean.keys())), np.array(list(gls_mean.values()), label = 'Mean growth_length_s'))
-    plt.plot(np.array(list(gls_min.keys())), np.array(list(gls_min.values()), label = 'Min growth_length_s'))
-    plt.xlabel('Iteration')
-    plt.ylabel('Value')
-    plt.savefig('growth_length_s.png')
-    plt.savefig('growth_length_s.pdf')
+        if iteration == 15000:
+            import matplotlib.pyplot as plt
+            import numpy as np
+            plt.plot(np.array(list(gls_max.keys())), np.array(list(gls_max.values()), label = 'Max growth_length_s'))
+            plt.plot(np.array(list(gls_mean.keys())), np.array(list(gls_mean.values()), label = 'Mean growth_length_s'))
+            plt.plot(np.array(list(gls_min.keys())), np.array(list(gls_min.values()), label = 'Min growth_length_s'))
+            plt.xlabel('Iteration')
+            plt.ylabel('Value')
+            plt.savefig('growth_length_s.png')
+            plt.savefig('growth_length_s.pdf')
 
 
 def prepare_output_and_logger(args):    
