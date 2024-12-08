@@ -179,6 +179,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 gls_max[iteration] = torch.max(gaussians._growth_length_s).cpu().detach().clone()
                 gls_mean[iteration] = torch.mean(gaussians._growth_length_s).cpu().detach().clone()
                 gls_min[iteration] = torch.min(gaussians._growth_length_s).cpu().detach().clone()
+                print(gaussians._growth_length_s.mean())
 
                 """ gdp_max[iteration] = torch.max(gaussians._growth_directions_probabilities)
                 gdp_mean[iteration] = torch.mean(gaussians._growth_directions_probabilities)
@@ -238,6 +239,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.plot(np.array(list(gls_min.keys())), np.array(list(gls_min.values())), label = 'Min growth_length_s')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
+            plt.legend()
             plt.savefig('growth_length_s.png')
             plt.savefig('growth_length_s.pdf')
 
