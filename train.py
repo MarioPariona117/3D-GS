@@ -46,7 +46,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     gls_mean = defaultdict(float)
     gls_min = defaultdict(float)
 
-    gdp_max = defaultdict(float)
+    """ gdp_max = defaultdict(float)
     gdp_mean = defaultdict(float)
     gdp_min = defaultdict(float)
 
@@ -56,7 +56,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
     v_max = defaultdict(float)
     v_mean = defaultdict(float)
-    v_min = defaultdict(float)
+    v_min = defaultdict(float) """
 
     if not SPARSE_ADAM_AVAILABLE and opt.optimizer_type == "sparse_adam":
         sys.exit(f"Trying to use sparse adam but it is not installed, please install the correct rasterizer using pip install [3dgs_accel].")
@@ -180,17 +180,17 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 gls_mean[iteration] = torch.mean(gaussians._growth_length_s)
                 gls_min[iteration] = torch.min(gaussians._growth_length_s)
 
-                gdp_max[iteration] = torch.max(gaussians._growth_directions_probabilities)
+                """ gdp_max[iteration] = torch.max(gaussians._growth_directions_probabilities)
                 gdp_mean[iteration] = torch.mean(gaussians._growth_directions_probabilities)
                 gdp_min[iteration] = torch.min(gaussians._growth_directions_probabilities)
-    
+
                 sp_max[iteration] = torch.max(gaussians._s_prime)
                 sp_mean[iteration] = torch.mean(gaussians._s_prime)
                 sp_min[iteration] = torch.min(gaussians._s_prime)
-    
+
                 v_max[iteration] = torch.max(gaussians._v)
                 v_mean[iteration] = torch.mean(gaussians._v)
-                v_min[iteration] = torch.min(gaussians._v)
+                v_min[iteration] = torch.min(gaussians._v) """
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
@@ -241,7 +241,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.savefig('growth_length_s.png')
             plt.savefig('growth_length_s.pdf')
 
-            plt.plot(np.array(list(gdp_max.keys())), np.array(list(gdp_max.values())), label = 'Max growth_directions_probabilities')
+            """ plt.plot(np.array(list(gdp_max.keys())), np.array(list(gdp_max.values())), label = 'Max growth_directions_probabilities')
             plt.plot(np.array(list(gdp_mean.keys())), np.array(list(gdp_mean.values())), label = 'Mean growth_directions_probabilities')
             plt.plot(np.array(list(gdp_min.keys())), np.array(list(gdp_min.values())), label = 'Min growth_directions_probabilities')
             plt.xlabel('Iteration')
@@ -263,7 +263,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.xlabel('Iteration')
             plt.ylabel('Value')
             plt.savefig('v.png')
-            plt.savefig('v.pdf')
+            plt.savefig('v.pdf') """
 
 
 def prepare_output_and_logger(args):    
