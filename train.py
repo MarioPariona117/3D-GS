@@ -50,13 +50,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     gdp_mean = defaultdict(float)
     gdp_min = defaultdict(float) """
 
-    sp_max = defaultdict(float)
+    """ sp_max = defaultdict(float)
     sp_mean = defaultdict(float)
-    sp_min = defaultdict(float)
+    sp_min = defaultdict(float) """
 
-    """ v_max = defaultdict(float)
+    v_max = defaultdict(float)
     v_mean = defaultdict(float)
-    v_min = defaultdict(float) """
+    v_min = defaultdict(float)
 
     if not SPARSE_ADAM_AVAILABLE and opt.optimizer_type == "sparse_adam":
         sys.exit(f"Trying to use sparse adam but it is not installed, please install the correct rasterizer using pip install [3dgs_accel].")
@@ -185,13 +185,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 gdp_mean[iteration] = torch.mean(gaussians._growth_directions_probabilities).cpu().detach().clone()
                 gdp_min[iteration] = torch.min(gaussians._growth_directions_probabilities).cpu().detach().clone() """
 
-                sp_max[iteration] = torch.max(gaussians._s_prime).cpu().detach().clone()
+                """ sp_max[iteration] = torch.max(gaussians._s_prime).cpu().detach().clone()
                 sp_mean[iteration] = torch.mean(gaussians._s_prime).cpu().detach().clone()
-                sp_min[iteration] = torch.min(gaussians._s_prime).cpu().detach().clone()
+                sp_min[iteration] = torch.min(gaussians._s_prime).cpu().detach().clone() """
 
-                """ v_max[iteration] = torch.max(gaussians._v).cpu().detach().clone()
+                v_max[iteration] = torch.max(gaussians._v).cpu().detach().clone()
                 v_mean[iteration] = torch.mean(gaussians._v).cpu().detach().clone()
-                v_min[iteration] = torch.min(gaussians._v).cpu().detach().clone() """
+                v_min[iteration] = torch.min(gaussians._v).cpu().detach().clone()
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
@@ -248,24 +248,27 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.plot(np.array(list(gdp_min.keys())), np.array(list(gdp_min.values())), label = 'Min growth_directions_probabilities')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
+            plt.legend()
             plt.savefig('growth_directions_probabilities.png')
             plt.savefig('growth_directions_probabilities.pdf') """
 
-            plt.plot(np.array(list(sp_max.keys())), np.array(list(sp_max.values())), label = 'Max s_prime')
+            """ plt.plot(np.array(list(sp_max.keys())), np.array(list(sp_max.values())), label = 'Max s_prime')
             plt.plot(np.array(list(sp_mean.keys())), np.array(list(sp_mean.values())), label = 'Mean s_prime')
             plt.plot(np.array(list(sp_min.keys())), np.array(list(sp_min.values())), label = 'Min s_prime')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
+            plt.legend()
             plt.savefig('s_prime.png')
-            plt.savefig('s_prime.pdf')
+            plt.savefig('s_prime.pdf') """
 
-            """ plt.plot(np.array(list(v_max.keys())), np.array(list(v_max.values())), label = 'Max v')
+            plt.plot(np.array(list(v_max.keys())), np.array(list(v_max.values())), label = 'Max v')
             plt.plot(np.array(list(v_mean.keys())), np.array(list(v_mean.values())), label = 'Mean v')
             plt.plot(np.array(list(v_min.keys())), np.array(list(v_min.values())), label = 'Min v')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
+            plt.legend()
             plt.savefig('v.png')
-            plt.savefig('v.pdf') """
+            plt.savefig('v.pdf')
 
 
 def prepare_output_and_logger(args):    
