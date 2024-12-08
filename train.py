@@ -176,9 +176,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 # print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
                 # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
                 # print(f"v: {torch.max(gaussians._v.grad)}")
-                gls_max[iteration] = torch.max(gaussians._growth_length_s)
-                gls_mean[iteration] = torch.mean(gaussians._growth_length_s)
-                gls_min[iteration] = torch.min(gaussians._growth_length_s)
+                gls_max[iteration] = torch.max(gaussians._growth_length_s).cpu()
+                gls_mean[iteration] = torch.mean(gaussians._growth_length_s).cpu()
+                gls_min[iteration] = torch.min(gaussians._growth_length_s).cpu()
 
                 """ gdp_max[iteration] = torch.max(gaussians._growth_directions_probabilities)
                 gdp_mean[iteration] = torch.mean(gaussians._growth_directions_probabilities)
