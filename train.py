@@ -239,6 +239,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.plot(np.array(list(gls_max.keys())), np.array(list(gls_max.values())), label = 'Max growth_length_s')
             plt.plot(np.array(list(gls_mean.keys())), np.array(list(gls_mean.values())), label = 'Mean growth_length_s')
             plt.plot(np.array(list(gls_min.keys())), np.array(list(gls_min.values())), label = 'Min growth_length_s')
+            plt.plot(np.array(list(gls_just_cloned_mean.keys())), np.array(list(gls_just_cloned_mean.values())), label = 'Min growth_length_s')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
             plt.legend()
