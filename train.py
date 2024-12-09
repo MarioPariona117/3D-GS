@@ -202,15 +202,16 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
-    if iteration == 710:
-        import matplotlib.pyplot as plt
-        import numpy as np
-        plt.plot(np.array(list(gls_mean.keys())), np.array(list(gls_mean.values())), label = 'Mean growth_length_s')
-        plt.xlabel('Iteration')
-        plt.ylabel('Value')
-        plt.legend()
-        plt.savefig('growth_length_s.png')
-        plt.savefig('growth_length_s_grad.pdf')
+    
+        if iteration == 710:
+            import matplotlib.pyplot as plt
+            import numpy as np
+            plt.plot(np.array(list(gls_mean.keys())), np.array(list(gls_mean.values())), label = 'Mean growth_length_s')
+            plt.xlabel('Iteration')
+            plt.ylabel('Value')
+            plt.legend()
+            plt.savefig('growth_length_s.png')
+            plt.savefig('growth_length_s_grad.pdf')
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
