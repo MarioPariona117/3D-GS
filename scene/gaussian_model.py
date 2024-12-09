@@ -508,6 +508,10 @@ class GaussianModel:
 
         self.d_xyz_d_s_prime = self.d_xyz_d_s_prime[valid_points_mask]
         self.d_xyz_d_v = self.d_xyz_d_v[valid_points_mask]
+        self.d_index_prob_prob = self.d_index_prob_prob[valid_points_mask]
+        self.d_togrow_d_growth_directions_probabilities = self.d_togrow_d_growth_directions_probabilities[valid_points_mask]
+        self.d_togrow_d_growth_length_s = self.d_togrow_d_growth_length_s[valid_points_mask]
+
 
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
 
@@ -690,12 +694,12 @@ class GaussianModel:
         togrow.backward(torch.ones_like(togrow), retain_graph=True)
         # N x 128 x 3
         self.d_togrow_d_growth_directions_probabilities = self.index_directions.grad.detach().clone()
-        self.d_togrow_d_growth_length_s = self._growth_length_s.grad[selected_pts_mask]
+        self.d_togrow_d_growth_length_s = self._growth_length_s.grad.detach().clone()
         self._growth_directions_probabilities.grad = None
         self.index_directions.grad = None
         self._growth_length_s.grad = None
         self.index_directions.backward(torch.ones_like(self.index_directions))
-        self.d_index_prob_prob = self._growth_directions_probabilities.grad[selected_pts_mask]
+        self.d_index_prob_prob = self._growth_directions_probabilities.grad.detach().clone()
 
         new_newly_cloned = torch.ones(newsize, device = "cuda", dtype = torch.bool)
 
@@ -763,10 +767,10 @@ class GaussianModel:
 
         # dloss/dprob = dloss/dx' * dx'/dprob_x' * dprob_x'/dprob
         # n x 1 x 128 = n x 1 x 3 * n x 3 x 128
-        tmp = torch.matmul(fresh_xyzprime_grads, self.d_togrow_d_growth_directions_probabilities.permute(0, 2, 1))
+        tmp = torch.matmul(fresh_xyzprime_grads, self.d_togrow_d_growth_directions_probabilities[self.just_cloned_mask].permute(0, 2, 1))
 
         # n x 128 = n x 128 . n x 128
-        tmp = tmp.squeeze(1) * self.d_index_prob_prob
+        tmp = tmp.squeeze(1) * self.d_index_prob_prob[self.just_cloned_mask]
 
         d_loss_d_growth_directions_probabilities[self.just_cloned_mask] = tmp
 
@@ -777,6 +781,6 @@ class GaussianModel:
 
         # dloss/ds = dloss/dx' * (dx'/ds_x' * ds_x'/ds = dx'/ds)
         # n x 1 x 1 = n x 1 x 3 * n x 3 x 1
-        d_loss_d_growth_length_s[self.just_cloned_mask] = torch.matmul(fresh_xyzprime_grads, self.d_togrow_d_growth_length_s.expand(-1, 3).unsqueeze(-1)).squeeze(-1)
+        d_loss_d_growth_length_s[self.just_cloned_mask] = torch.matmul(fresh_xyzprime_grads, self.d_togrow_d_growth_length_s[self.just_cloned_mask].expand(-1, 3).unsqueeze(-1)).squeeze(-1)
 
         self._growth_length_s.grad = d_loss_d_growth_length_s
