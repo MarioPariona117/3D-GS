@@ -13,9 +13,9 @@ import os
 from argparse import ArgumentParser
 import time
 
-mipnerf360_outdoor_scenes = ["bicycle"]    
+mipnerf360_outdoor_scenes = []    
 mipnerf360_indoor_scenes = []
-tanks_and_temples_scenes = ["truck", "train"]
+tanks_and_temples_scenes = ["train"]
 deep_blending_scenes = []
 llff_scenes = []
 # mipnerf360_outdoor_scenes = ["bicycle", "stump"]    
@@ -33,7 +33,7 @@ parser = ArgumentParser(description="Full evaluation script parameters")
 parser.add_argument("--skip_training", action="store_true")
 parser.add_argument("--skip_rendering", action="store_true")
 parser.add_argument("--skip_metrics", action="store_true")
-parser.add_argument("--output_path", default="./o-3dgs/eval")
+parser.add_argument("--output_path", default="./eval")
 parser.add_argument("--use_depth", action="store_true")
 parser.add_argument("--use_expcomp", action="store_true")
 parser.add_argument("--fast", action="store_true")
@@ -82,7 +82,7 @@ if not args.skip_training:
         s_time = time.time()
         os.system("python train.py -s " + source + " -i images_2 -m " + args.output_path + "/" + scene + common_args)
         with open(os.path.join(args.output_path,scene,"timing.txt"), 'w') as file:
-            file.write(f"{time.time() - s_time}")
+            file.write(f"{(time.time() - s_time) / 60.0}")
     m360_timing = (time.time() - start_time)/60.0
 
     start_time = time.time()
@@ -91,7 +91,7 @@ if not args.skip_training:
         s_time = time.time()
         os.system("python train.py -s " + source + " -m " + args.output_path + "/" + scene + common_args)
         with open(os.path.join(args.output_path,scene,"timing.txt"), 'w') as file:
-            file.write(f"{time.time() - s_time}")
+            file.write(f"{(time.time() - s_time) / 60.0}")
     tandt_timing = (time.time() - start_time)/60.0
 
     start_time = time.time()
@@ -100,7 +100,7 @@ if not args.skip_training:
         s_time = time.time()
         os.system("python train.py -s " + source + " -m " + args.output_path + "/" + scene + common_args)
         with open(os.path.join(args.output_path,scene,"timing.txt"), 'w') as file:
-            file.write(f"{time.time() - s_time}")
+            file.write(f"{(time.time() - s_time) / 60.0}")
     db_timing = (time.time() - start_time)/60.0
 
     start_time = time.time()
@@ -111,7 +111,7 @@ if not args.skip_training:
         common_args_llff = common_args 
         os.system("python train.py -s " + source + " -i images -m " + args.output_path + "/" + scene + common_args_llff)
         with open(os.path.join(args.output_path,scene,"timing.txt"), 'w') as file:
-            file.write(f"{time.time() - s_time}")
+            file.write(f"{(time.time() - s_time) / 60.0}")
     llff_timing = (time.time() - start_time) / 60.0
 
     with open(os.path.join(args.output_path,"timing.txt"), 'w') as file:
