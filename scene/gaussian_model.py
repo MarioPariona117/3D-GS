@@ -146,7 +146,7 @@ class GaussianModel:
         )
 
         # TODO: Why do we start with 1/100
-        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], 1 / 100, device="cuda", requires_grad=True))
+        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], 1 / 200, device="cuda", requires_grad=True))
         
         self.just_cloned_mask = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
         self.newly_cloned = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
@@ -777,6 +777,6 @@ class GaussianModel:
 
         # dloss/ds = dloss/dx' * (dx'/ds_x' * ds_x'/ds = dx'/ds)
         # n x 1 x 1 = n x 1 x 3 * n x 3 x 1
-        d_loss_d_growth_length_s[self.just_cloned_mask] = new_gls_grads = torch.matmul(fresh_xyzprime_grads, self.d_togrow_d_growth_length_s.expand(-1, 3).unsqueeze(-1)).squeeze(-1)
+        d_loss_d_growth_length_s[self.just_cloned_mask] = torch.matmul(fresh_xyzprime_grads, self.d_togrow_d_growth_length_s.expand(-1, 3).unsqueeze(-1)).squeeze(-1)
 
         self._growth_length_s.grad = d_loss_d_growth_length_s
