@@ -163,7 +163,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 # print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
                 # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
                 # print(f"v: {torch.max(gaussians._v.grad)}")
-                gls_mean[iteration] = torch.mean(gaussians._growth_length_s)
+                gls_mean[iteration] = torch.mean(gaussians._growth_length_s).cpu().detach().clone()
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
