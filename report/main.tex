@@ -1,40 +1,15 @@
 \documentclass[11pt]{report}
-\usepackage{xcolor}
-\usepackage{titlesec}
-\usepackage{graphicx}
-\usepackage{pgffor}
-\usepackage{subcaption}
-\usepackage{etoolbox}
-\usepackage{pgfkeys, pgfplots, filecontents}
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{filecontents}
-\usepackage[a4paper, margin=1in]{geometry}
-\usepackage[font=small, labelfont=bf]{caption}
-\usepackage{amsmath}
 
-\setlength{\parskip}{0.5em}
-\setlength{\parindent}{0pt}
-% Define colors for chapter and section titles
-\definecolor{blue}{rgb}{0.0, 0.0, 1.0}
-\definecolor{red}{rgb}{1.0, 0.0, 0.0}
-\definecolor{deep_blue}{rgb}{0.0, 0.2, 0.4}
-\definecolor{teal_green}{rgb}{0.0, 0.5, 0.5}
-\definecolor{steel_blue}{rgb}{0.27, 0.51, 0.71}
-\definecolor{slate_gray}{rgb}{0.44, 0.5, 0.56}
+\usepackage{MarioLeoYunStyle}
 
-% Customize chapter and section formatting
-\titleformat{\chapter}[hang]{\normalfont\Large\bfseries\color{deep_blue}}{\thechapter}{1em}{}[\titlerule]
-\titleformat{\section}[hang]{\normalfont\large\bfseries\color{teal_green}}{\thesection}{1em}{}
-\titleformat{\subsection}[hang]{\normalfont\large\bfseries\color{steel_blue}}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}[hang]{\normalfont\large\bfseries\color{slate_gray}}{\thesubsubsection}{1em}{}
-
+\title{\titleinfo}
+\author{\authorinfo}
+\date{}
 
 \begin{document}
-\title{Machine Visual Perception\\Course Project Report}
-\author{Mario Pariona, Leo Takashige, Kee Yun Shao\\ Group Number: 9}
-\date{\today}
+
 \maketitle
+\thispagestyle{empty} % Removes the page number on the title page
 
 \tableofcontents
 
@@ -71,7 +46,7 @@ At fixed intervals in the optimization process, we also carry out Adaptive Densi
 
 \begin{center}
 \begin{minipage}{0.6\linewidth}
-\includegraphics[width = \linewidth]{screenshots/original_optimization_and_densification}
+\includegraphics[width = \linewidth]{assets/original_optimization_and_densification}
 \captionof{figure}{Summary of optimization and densification algorithms [Kerbl et al., 2023].}
 \end{minipage}
 \end{center}
@@ -95,7 +70,7 @@ To this extent, we introduce 2 new learnable parameters for each Splat: \textbf{
 
 \begin{center}
 \begin{minipage}{0.4\linewidth}
-\includegraphics[width = \linewidth]{screenshots/clone}
+\includegraphics[width = \linewidth]{assets/clone}
 \captionof{figure}{Position of newly Cloned Splat.}
 \end{minipage}
 \end{center}
@@ -107,7 +82,7 @@ We also aim to optimize the scale $\varphi$, of the 2 newly split Splats with re
 
 \begin{center}
 \begin{minipage}{0.4\linewidth}
-\includegraphics[width = \linewidth]{screenshots/split}
+\includegraphics[width = \linewidth]{assets/split}
 \captionof{figure}{Position and scale of newly split Splats.}
 \end{minipage}
 \end{center}
@@ -118,7 +93,7 @@ We did not work on modifying the original implementation of the Prune operation,
 %To improve upon the baseline, we implemented several enhancements. The key improvement is the introduction of Adaptive Density Control, which dynamically adjusts the number of Gaussians in the scene. Every 100 iterations, Gaussians with transparency $\alpha$ below a threshold $\epsilon_\alpha$ are removed, and new Gaussians are added based on the density of existing ones. This adaptive approach ensures a more efficient and accurate representation of the scene. Figures are included to explain the idea and logic behind these improvements.
 
 \section{Implementation Details}
-%TODO: add code screenshots
+%TODO: add code assets
 The improvements were implemented in Python, using the PyTorch framework. The enhanced ADC mechanism was integrated into the training loop, allowing for dynamic adjustment of Gaussians during training.
 
 \subsection{Cloning}
@@ -126,7 +101,7 @@ The improvements were implemented in Python, using the PyTorch framework. The en
 Zhan and Liang et al. provided pseudocode for the implementation of a suitable algorithm. In this algorithm, we choose to optimize either the growth direction $d$, or the growth length $l$. Firstly, the chosen parameter is discretized, with a set of uniformly distributed possible values for the parameter created. Each Splat is then assigned a learnable set of probabilities, with each probability representing the probability that the corresponding value for the parameter is selected. In the forward pass, the Argmax function is used to select the value for the parameter with the highest probability, which is used for the calculation of $\Delta \mu$. However, the Argmax function disrupts the flow of gradients from the loss to the input parameters (in this case the set of probabilities). Instead, the algorithm propogates gradients as though the Softmax function had been used instead. This allows for effective optimization of the set of probabilities according to training objectives.
 \begin{center}
 \begin{minipage}{0.6\linewidth}
-\includegraphics[width = \linewidth]{screenshots/clone_algo}
+\includegraphics[width = \linewidth]{assets/clone_algo}
 \captionof{figure}{Pseudocode of algorithm for learnable Cloning of Splats [Zhan and Liang et al.].}
 \end{minipage}
 \end{center}
