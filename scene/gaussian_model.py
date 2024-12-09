@@ -146,15 +146,15 @@ class GaussianModel:
         )
 
         # TODO: Why do we start with 1/100
-        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], - 4 / 100, device="cuda", requires_grad=True))
+        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], - 8 / 100, device="cuda", requires_grad=True))
         
         self.just_cloned_mask = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
         self.newly_cloned = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
 
     def initialise_epo_split(self, initialisation_points_count):
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
-        self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], - 1 / 100, device="cuda", requires_grad=True))
-        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], - 4 / 100, device="cuda", requires_grad=True))
+        self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], - 3 / 200, device="cuda", requires_grad=True))
+        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], - 5 / 100, device="cuda", requires_grad=True))
         # Gradients for thos values
         self.d_xyz_d_s_prime = torch.zeros((initialisation_points_count, 1), device = "cuda")
         self.d_xyz_d_v = torch.zeros((initialisation_points_count, 1), device = "cuda")
