@@ -44,6 +44,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
     from collections import defaultdict
     gls_mean = defaultdict(float)
+    sprime_mean = defaultdict(float)
+    v_mean = defaultdict(float)
 
     if not SPARSE_ADAM_AVAILABLE and opt.optimizer_type == "sparse_adam":
         sys.exit(f"Trying to use sparse adam but it is not installed, please install the correct rasterizer using pip install [3dgs_accel].")
@@ -164,6 +166,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
                 # print(f"v: {torch.max(gaussians._v.grad)}")
                 gls_mean[iteration] = torch.mean(gaussians._growth_length_s).cpu().detach().clone()
+                sprime_mean[iteration] = torch.mean(gaussians._s_prime).cpu().detach().clone()
+                v_mean[iteration] = torch.mean(gaussians._v).cpu().detach().clone()
 
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                 gaussians.reset_opacity()
@@ -211,7 +215,21 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.ylabel('Value')
             plt.legend()
             plt.savefig('growth_length_s.png')
-            plt.savefig('growth_length_s_grad.pdf')
+            plt.savefig('growth_length_s.pdf')
+
+            plt.plot(np.array(list(sprime_mean.keys())), np.array(list(sprime_mean.values())), label = 'Mean s_prime')
+            plt.xlabel('Iteration')
+            plt.ylabel('Value')
+            plt.legend()
+            plt.savefig('s_prime.png')
+            plt.savefig('s_prime.pdf')
+
+            plt.plot(np.array(list(v_mean.keys())), np.array(list(v_mean.values())), label = 'Mean v')
+            plt.xlabel('Iteration')
+            plt.ylabel('Value')
+            plt.legend()
+            plt.savefig('v.png')
+            plt.savefig('v.pdf')
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
