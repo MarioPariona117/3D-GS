@@ -647,6 +647,7 @@ class GaussianModel:
         TODO: Insert formulae here.
         """
         # Extract points that satisfy the gradient condition
+        print(self._growth_length_s.mean())
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
