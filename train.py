@@ -207,7 +207,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
     
-        if iteration == 15100:
+        if iteration == 710:
             import matplotlib.pyplot as plt
             import numpy as np
             plt.plot(np.array(list(gls_mean.keys())), np.array(list(gls_mean.values())), label = 'Mean growth_length_s')
@@ -217,6 +217,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.savefig('growth_length_s.png')
             plt.savefig('growth_length_s.pdf')
 
+            plt.clf()
             plt.plot(np.array(list(sprime_mean.keys())), np.array(list(sprime_mean.values())), label = 'Mean s_prime')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
@@ -224,6 +225,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             plt.savefig('s_prime.png')
             plt.savefig('s_prime.pdf')
 
+            plt.clf()
             plt.plot(np.array(list(v_mean.keys())), np.array(list(v_mean.values())), label = 'Mean v')
             plt.xlabel('Iteration')
             plt.ylabel('Value')
