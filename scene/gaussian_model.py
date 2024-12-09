@@ -769,7 +769,6 @@ class GaussianModel:
         tmp = tmp.squeeze(1) * self.d_index_prob_prob
 
         d_loss_d_growth_directions_probabilities[self.just_cloned_mask] = tmp
-        d_loss_d_growth_directions_probabilities[self.newly_cloned] = tmp
 
         self._growth_directions_probabilities.grad = d_loss_d_growth_directions_probabilities
 
@@ -778,8 +777,6 @@ class GaussianModel:
 
         # dloss/ds = dloss/dx' * (dx'/ds_x' * ds_x'/ds = dx'/ds)
         # n x 1 x 1 = n x 1 x 3 * n x 3 x 1
-        new_gls_grads = torch.matmul(fresh_xyzprime_grads, self.d_togrow_d_growth_length_s.expand(-1, 3).unsqueeze(-1)).squeeze(-1)
-        d_loss_d_growth_length_s[self.just_cloned_mask] = new_gls_grads
-        d_loss_d_growth_length_s[self.newly_cloned] = new_gls_grads
+        d_loss_d_growth_length_s[self.just_cloned_mask] = new_gls_grads = torch.matmul(fresh_xyzprime_grads, self.d_togrow_d_growth_length_s.expand(-1, 3).unsqueeze(-1)).squeeze(-1)
 
         self._growth_length_s.grad = d_loss_d_growth_length_s
