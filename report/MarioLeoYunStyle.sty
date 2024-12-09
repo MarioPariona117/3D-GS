@@ -1,0 +1,73 @@
+% MarioLeoYunStyle.sty
+\ProvidesPackage{MarioLeoYunStyle} % Package declaration
+
+\RequirePackage{xcolor} % Required package for color definitions
+\RequirePackage{titlesec} % Required package for section formatting
+\RequirePackage{graphicx} % Required package for including images
+\RequirePackage{pgffor} % For loops in LaTeX
+\RequirePackage{subcaption} % For subfigures
+\RequirePackage{etoolbox} % For additional LaTeX programming tools
+\RequirePackage{pgfkeys, pgfplots, filecontents} % Plotting and file management
+\pgfplotsset{compat=1.18} % Set pgfplots compatibility
+\RequirePackage{booktabs} % For better table formatting
+\RequirePackage{multirow} % For multirow tables
+\RequirePackage{filecontents} % For file contents
+\RequirePackage[a4paper, margin=1in]{geometry} % Page dimensions
+\RequirePackage[font=small, labelfont=bf]{caption} % Caption formatting
+\RequirePackage{amsmath} % For mathematical expressions
+\RequirePackage[colorlinks=true]{hyperref} % For hyperlinks
+\RequirePackage[hypcap=false]{caption} % For better captions in floating figures
+
+% Set paragraph formatting
+\setlength{\parskip}{0.5em} % Vertical space between paragraphs
+\setlength{\parindent}{0pt} % Remove paragraph indentation
+
+% Define custom colors
+\definecolor{blue}{rgb}{0.0, 0.0, 1.0}
+\definecolor{red}{rgb}{1.0, 0.0, 0.0}
+\definecolor{deep_blue}{rgb}{0.0, 0., 0.5}
+\definecolor{light_gray}{rgb}{0.83, 0.83, 0.83}
+\definecolor{lavanda}{rgb}{0.2, 0.2, 0.8}
+\definecolor{teal_green}{rgb}{0.0, 0.5, 0.5}
+\definecolor{steel_blue}{rgb}{0.27, 0.51, 0.71}
+\definecolor{slate_gray}{rgb}{0.44, 0.5, 0.56}
+
+% Define main colors
+\definecolor{main}{named}{deep_blue}
+\definecolor{secondary}{named}{lavanda}
+
+% Customize chapter and section formatting
+\titleformat{\chapter}[hang]{\normalfont\huge\bfseries\color{main}}{\thechapter}{1em}{}[\titlerule]
+\titleformat{\section}[hang]{\normalfont\LARGE\bfseries\color{secondary}}{\thesection}{1em}{}
+\titleformat{\subsection}[hang]{\normalfont\Large\bfseries\color{secondary}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}[hang]{\normalfont\large\bfseries\color{secondary}}{\thesubsubsection}{1em}{}
+
+\hypersetup{
+    urlcolor=red,
+    linkcolor=secondary,
+    citecolor=main
+}
+
+% Title information formatting
+\RequirePackage[absolute,overlay]{textpos} % For positioning the logo
+\newcommand{\titleinfo}{
+    \begin{textblock*}{9cm}(1cm,3cm) % Adjust size and position
+        \includegraphics[width=7cm]{assets/DCST_Colour.png} % Replace with your logo filename
+    \end{textblock*}
+    \begin{textblock*}{8cm}(11cm,6cm) % Adjust size and position
+        \textsc{\Large Machine Visual Perception \\ Course Project Report} \\[2cm]
+    \end{textblock*}
+    \vspace{3cm}
+    \textcolor{main}{\rule{\textwidth}{1pt}} \\[0.5cm]
+    {\Huge \textcolor{main}{\textbf{Avoiding Local Minimum Problem in 3D Gaussian Splatting}}}
+    \textcolor{main}{\rule{\textwidth}{1pt}} \\[0.5cm]
+}
+
+\newcommand{\authorinfo}{
+    \textcolor{secondary}{
+        \textbf{Authors:} Mario Pariona, Leo Takashige, Kee Yun Shao
+    } \\[0.2cm]
+    \textcolor{secondary}{
+        \textbf{Group number:} 9
+    }
+}
