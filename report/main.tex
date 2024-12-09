@@ -2,6 +2,9 @@
 
 \usepackage{MarioLeoYunStyle}
 
+\usepackage{tikz}
+\usepackage{float}
+
 \title{\titleinfo}
 \author{\authorinfo}
 \date{}
@@ -68,12 +71,18 @@ We aim to optimize the position of the newly Cloned Splat, which is a product of
 
 To this extent, we introduce 2 new learnable parameters for each Splat: \textbf{growth direction probabilities} ($p$), and \textbf{growth length s} ($s$), which will be used in the calculation of $d$ and $l$ respectively.
 
-\begin{center}
-\begin{minipage}{0.4\linewidth}
-\includegraphics[width = \linewidth]{assets/clone}
-\captionof{figure}{Position of newly Cloned Splat.}
-\end{minipage}
-\end{center}
+% \begin{center}  
+% \begin{minipage}{0.4\linewidth}
+% \includegraphics[width = \linewidth]{assets/clone}
+% \captionof{figure}{Position of newly Cloned Splat.}
+% \end{minipage}
+% \end{center}
+\begin{figure}[H]
+    \centering
+    \input{assets/clone}
+    \caption{Your caption here}
+    \label{fig:your_label}
+\end{figure}
 
 \subsection{Splitting}
 We aim to optimize the relative positions of the 2 newly split Splats. We denote the position of the original Splat $\mu$, and the relative positions of the 2 newly split Splats $\Delta \mu$ and $- \Delta \mu$. $\Delta \mu$ is optimized through the introduction of a learnable parameter \textbf{s prime} ($s'$), which is used in the calculation of $\Delta \mu$
