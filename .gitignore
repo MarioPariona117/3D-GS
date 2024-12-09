@@ -20,6 +20,7 @@ Playroom_Reconstruction_Inputs_Outputs.zip
 
 *.ply
 
+
 *.aux
 *.fdb
 *.log
@@ -27,3 +28,5 @@ Playroom_Reconstruction_Inputs_Outputs.zip
 *.synctex.gz
 *.fdb_latexmk
 *.pytxcode
+
+colab/
