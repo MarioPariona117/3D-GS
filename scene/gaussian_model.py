@@ -574,6 +574,10 @@ class GaussianModel:
         self.just_cloned_mask = torch.cat((self.just_cloned_mask, torch.zeros(new_xyz.size()[0], device = "cuda", dtype = torch.bool)))
         self.newly_cloned = torch.cat((self.newly_cloned, new_newly_cloned), dim = 0)
 
+        self.d_index_prob_prob = torch.cat(self.d_index_prob_prob, torch.zeros((new_xyz.shape[0], 128), device="cuda", dtype=torch.float))
+        self.d_togrow_d_growth_directions_probabilities = torch.cat(self.d_togrow_d_growth_directions_probabilities, torch.zeros((new_xyz.shape[0], 128, 3), device="cuda", dtype=torch.float))
+        self.d_togrow_d_growth_length_s = torch.cat(self.d_togrow_d_growth_length_s,torch.zeros((new_xyz.shape[0], 1), device="cuda", dtype=torch.float))
+
         self.tmp_radii = torch.cat((self.tmp_radii, new_tmp_radii))
         self.xyz_gradient_accum = torch.zeros((self.get_num_points, 1), device="cuda")
         self.denom = torch.zeros((self.get_num_points, 1), device="cuda")
