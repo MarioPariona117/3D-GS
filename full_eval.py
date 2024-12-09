@@ -13,9 +13,9 @@ import os
 from argparse import ArgumentParser
 import time
 
-mipnerf360_outdoor_scenes = ["bicycle"]    
+mipnerf360_outdoor_scenes = []    
 mipnerf360_indoor_scenes = []
-tanks_and_temples_scenes = ["truck", "train"]
+tanks_and_temples_scenes = ["train"]
 deep_blending_scenes = []
 llff_scenes = []
 # mipnerf360_outdoor_scenes = ["bicycle", "stump"]    
