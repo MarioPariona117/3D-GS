@@ -56,22 +56,13 @@ for cat, scenes in DIRECTORY.items():
     \\multirow{{{len(scenes) * 2}}}{{*}}{{\\textbf{{{cat}}}}} & """
     for scene in scenes:
         o_3d_gs_metrics = json.load(open(f"o-3dgs/eval/{scene}/results.json"))["ours_30000"]
-        try:
-            o_3d_gs_metrics["Mem"] = json.load(open(f"o-3dgs/eval/{scene}/memory.json"))
-        except:
-            o_3d_gs_metrics["Mem"] = 0
-            
         our_metrics = json.load(open(f"o-3dgs/eval/{scene}/results.json"))["ours_30000"]
-        try:
-            our_metrics["Mem"] = json.load(open(f"o-3dgs/eval/{scene}/memory.json"))
-        except:
-            our_metrics["Mem"] = 0
         # our_metrics = json.load(open(f"eval/{scene}/results.json"))["ours_30000"]
         metrics += f"""
         \\multirow{{2}}{{*}}{{{scene.capitalize()}}} 
-        & 3D-GS & {o_3d_gs_metrics["SSIM"]:.3f} & {o_3d_gs_metrics["PSNR"]:.2f} & {o_3d_gs_metrics["LPIPS"]:.3f} & {o_3d_gs_metrics["Mem"]}MB \\\\"""
+        & 3D-GS & {o_3d_gs_metrics["SSIM"]:.3f} & {o_3d_gs_metrics["PSNR"]:.2f} & {o_3d_gs_metrics["LPIPS"]:.3f} & {int(o_3d_gs_metrics["Memory"])}MB \\\\"""
         metrics += f"""
-        & & \\textbf{{Our Model}} & {our_metrics["SSIM"]:.3f} & {our_metrics["PSNR"]:.2f} & {our_metrics["LPIPS"]:.3f} & {our_metrics["Mem"]}MB \\\\"""
+        & & \\textbf{{Our Model}} & {our_metrics["SSIM"]:.3f} & {our_metrics["PSNR"]:.2f} & {our_metrics["LPIPS"]:.3f} & {int(our_metrics["Memory"])}MB \\\\"""
         if scene != scenes[-1]:
             metrics += """
             \\cmidrule{2-7} &"""

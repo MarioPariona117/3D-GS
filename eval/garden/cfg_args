@@ -1,1 +1,0 @@
-Namespace(sh_degree=3, source_path='/content/drive/MyDrive/Machine Visual Perception/3D-GS/gaussian-splatting/360_v2/garden', model_path='./eval/garden', images='images_4', depths='', resolution=-1, white_background=False, train_test_exp=False, data_device='cuda', eval=True)

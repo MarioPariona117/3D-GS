@@ -27,3 +27,5 @@ Playroom_Reconstruction_Inputs_Outputs.zip
 *.synctex.gz
 *.fdb_latexmk
 *.pytxcode
+*.out
+*.toc
