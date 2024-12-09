@@ -146,7 +146,7 @@ class GaussianModel:
         )
 
         # TODO: Why do we start with 1/100
-        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], 1 / 200, device="cuda", requires_grad=True))
+        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], 1 / 50, device="cuda", requires_grad=True))
         
         self.just_cloned_mask = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
         self.newly_cloned = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
