@@ -3,26 +3,24 @@ import os
 print("Current working directory:", os.getcwd())
 
 # SCENES = ["stump", "counter", "playroom", "horns", "trex"]
-DIRECTORY = {
-    "MipNeRF360 Outdoor": ["stump"],
-    "MipNeRF360 Indoor": ["counter"],
-    "Tanks & Temples": [],
-    "Deep Blending": ["playroom"],
-    "LLFF": ["horns", "trex"]
-}
 # DIRECTORY = {
-#     "MipNeRF360 Outdoor": ["bicycle", "stump"],
+#     "MipNeRF360 Outdoor": ["stump"],
 #     "MipNeRF360 Indoor": ["counter"],
-#     "Tanks & Temples": ["truck", "train"],
+#     "Tanks & Temples": [],
 #     "Deep Blending": ["playroom"],
 #     "LLFF": ["horns", "trex"]
 # }
+DIRECTORY = {
+    "MipNeRF360 Outdoor": ["bicycle", "stump"],
+    "MipNeRF360 Indoor": ["counter"],
+    "Tanks \& Temples": ["truck", "train"],
+    "Deep Blending": ["playroom"],
+    "LLFF": ["horns", "trex"]
+}
 # SCENES = ["bycicle", "stump", "counter", "playroom", "truck", "train", "horns", "trex"]
 
 # comparison
 comparison = """
-\\begin{figure}[h]
-    \\centering
     \\begin{tabular}{ccc}
         \\textbf{Ground Truth} & \\textbf{3D-GS} & \\textbf{Ours} \\\\ \\hline"""
 for scenes in DIRECTORY.values():
@@ -34,16 +32,12 @@ for scenes in DIRECTORY.values():
 
 comparison += """
     \\end{tabular}
-    \\caption{Comparison of Ground Truth, 3D-GS, and Ours across different scenes.}
-    \\label{fig:comparison}
-\\end{figure}"""
+    """
 
 with open("report/aux/comparison.tex", "w") as file:
     file.write(comparison)
 
 metrics = """
-\\begin{table}[h!]
-    \\centering
     \\begin{tabular}{llccccc}
     \\toprule
     \\textbf{Category} & \\textbf{Scene} & \\textbf{Method} & \\textbf{SSIM$\\uparrow$} & \\textbf{PSNR$\\uparrow$} & \\textbf{LPIPS$\\downarrow$} & \\textbf{Mem} \\\\
@@ -71,10 +65,7 @@ for cat, scenes in DIRECTORY.items():
         \\midrule"""
 metrics += """
     \\bottomrule
-    \\end{tabular}
-    \\caption{Comparison of 3D-GS and Our Model across different scenes and categories. Metrics: SSIM, PSNR, LPIPS, and Memory Usage. Arrows indicate the desired trend for each metric.}
-    \\label{tab:comparison}
-    \\end{table}"""
+    \\end{tabular}"""
 
 with open("report/aux/metrics.tex", "w") as file:
     file.write(metrics)

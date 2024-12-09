@@ -3,19 +3,23 @@
     \def\y{2}
     \def\xf{2}
     \def\yf{-2}
+    \def\sx{2}
+    \def\sy{1}
     % Draw the larger ellipse labeled X_μ
-    \draw[thick] (\x, \y) ellipse (1.5 and 0.8);
-    \node at (\x + 0.2, \y + 0.2) {\textbf{$\mu$}};
+    \draw[thick] (\x, \y) ellipse ({\sx} and {\sy});
+    \node at (\x + 0.3, \y + 0.3) {\textbf{$\mu_k$}};
     
     % Draw the smaller dashed ellipse labeled "interior"
-    \draw[thick, dashed] (\xf, \yf) ellipse (1.5 and 0.8);
+    \draw[thick, dashed] (\xf, \yf) ellipse ({\sx} and {\sy});
     % \node[below] at (0, -2.5) {\textit{interior}};
     
     % Draw points and arrow
-    \fill (\x, \y) circle (1pt); % Point at the center of X_μ
-    \fill (\xf, \yf) circle (1pt); % Point at the center of interior
-    \draw[thick, ->, >=stealth] (\x, \y) -- (\xf, \yf) node[midway, right] {$\Delta \mu = d \cdot l = d (p) = l(s)$};
+    \fill (\x, \y) circle (1.5pt); % Point at the center of X_μ
+    \fill (\xf, \yf) circle (1.5pt); % Point at the center of interior
+    \draw[thick, ->, >=stealth, line width=1pt] (\x, \y) -- (\xf, \yf) node[midway, right] {$\delta \mu_k = d \cdot l = d (p) = l(s)$};
+    % \draw[thick, ->, >=stealth, line width=2.5pt] ({\xf + (\x - \xf) * 0.000001}, {\yf + (\y - \yf) * 0.000001}) -- (\xf, \yf);
     
+    \node at (\xf+0.4, \yf - 0.3) {\textbf{$\mu_k + \delta \mu_k$}};
     % Annotate components of the formula
     % \node[right] at (\xf, \yf + 1) {$d$ (growth direction probabilities)};
     % \node[right] at (\xf, \yf + 0.5) {$l(s)$};

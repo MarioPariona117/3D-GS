@@ -1,35 +1,43 @@
 
-\begin{table}[h!]
-    \centering
     \begin{tabular}{llccccc}
     \toprule
     \textbf{Category} & \textbf{Scene} & \textbf{Method} & \textbf{SSIM$\uparrow$} & \textbf{PSNR$\uparrow$} & \textbf{LPIPS$\downarrow$} & \textbf{Mem} \\
     \midrule
-    \multirow{2}{*}{\textbf{MipNeRF360 Outdoor}} & 
+    \multirow{4}{*}{\textbf{MipNeRF360 Outdoor}} & 
+        \multirow{2}{*}{Bicycle} 
+        & 3D-GS & 0.767 & 25.24 & 0.208 & 1167MB \\
+        & & \textbf{Our Model} & 0.767 & 25.24 & 0.208 & 1167MB \\
+            \cmidrule{2-7} &
         \multirow{2}{*}{Stump} 
-        & 3D-GS & 0.772 & 26.63 & 0.216 & 0MB \\
-        & & \textbf{Our Model} & 0.772 & 26.63 & 0.216 & 0MB \\
+        & 3D-GS & 0.772 & 26.63 & 0.216 & 1026MB \\
+        & & \textbf{Our Model} & 0.772 & 26.63 & 0.216 & 1026MB \\
         \midrule
     \multirow{2}{*}{\textbf{MipNeRF360 Indoor}} & 
         \multirow{2}{*}{Counter} 
-        & 3D-GS & 0.909 & 29.10 & 0.199 & 0MB \\
-        & & \textbf{Our Model} & 0.909 & 29.10 & 0.199 & 0MB \\
+        & 3D-GS & 0.909 & 29.10 & 0.199 & 255MB \\
+        & & \textbf{Our Model} & 0.909 & 29.10 & 0.199 & 255MB \\
+        \midrule
+    \multirow{4}{*}{\textbf{Tanks \& Temples}} & 
+        \multirow{2}{*}{Truck} 
+        & 3D-GS & 0.885 & 25.42 & 0.142 & 487MB \\
+        & & \textbf{Our Model} & 0.885 & 25.42 & 0.142 & 487MB \\
+            \cmidrule{2-7} &
+        \multirow{2}{*}{Train} 
+        & 3D-GS & 0.821 & 22.13 & 0.196 & 257MB \\
+        & & \textbf{Our Model} & 0.821 & 22.13 & 0.196 & 257MB \\
         \midrule
     \multirow{2}{*}{\textbf{Deep Blending}} & 
         \multirow{2}{*}{Playroom} 
-        & 3D-GS & 0.907 & 30.07 & 0.241 & 0MB \\
-        & & \textbf{Our Model} & 0.907 & 30.07 & 0.241 & 0MB \\
+        & 3D-GS & 0.907 & 30.07 & 0.241 & 437MB \\
+        & & \textbf{Our Model} & 0.907 & 30.07 & 0.241 & 437MB \\
         \midrule
     \multirow{4}{*}{\textbf{LLFF}} & 
         \multirow{2}{*}{Horns} 
-        & 3D-GS & 0.887 & 27.21 & 0.132 & 0MB \\
-        & & \textbf{Our Model} & 0.887 & 27.21 & 0.132 & 0MB \\
+        & 3D-GS & 0.887 & 27.21 & 0.132 & 157MB \\
+        & & \textbf{Our Model} & 0.887 & 27.21 & 0.132 & 157MB \\
             \cmidrule{2-7} &
         \multirow{2}{*}{Trex} 
-        & 3D-GS & 0.899 & 25.59 & 0.130 & 0MB \\
-        & & \textbf{Our Model} & 0.899 & 25.59 & 0.130 & 0MB \\
+        & 3D-GS & 0.899 & 25.59 & 0.130 & 110MB \\
+        & & \textbf{Our Model} & 0.899 & 25.59 & 0.130 & 110MB \\
     \bottomrule
     \end{tabular}
-    \caption{Comparison of 3D-GS and Our Model across different scenes and categories. Metrics: SSIM, PSNR, LPIPS, and Memory Usage. Arrows indicate the desired trend for each metric.}
-    \label{tab:comparison}
-    \end{table}
