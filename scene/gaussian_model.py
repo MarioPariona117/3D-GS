@@ -146,7 +146,7 @@ class GaussianModel:
         )
 
         # TODO: Why do we start with 1/100
-        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], - 1 / 2, device="cuda", requires_grad=True))
+        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], - 1 / 5, device="cuda", requires_grad=True))
         
         self.just_cloned_mask = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
         self.newly_cloned = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
@@ -688,7 +688,7 @@ class GaussianModel:
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values <= self.percent_dense*scene_extent)
-        print(f"{self._growth_length_s.mean()}")
+        #print(f"{self._growth_length_s.mean()}")
         growth_dist = self.calc_growth_dist(selected_pts_mask)
         softmax_growth_dir = self.calc_growth_dir_soft(selected_pts_mask)
         argmax_growth_dir = self.calc_growth_dir_repara(selected_pts_mask)
@@ -762,7 +762,7 @@ class GaussianModel:
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals, dim = 1).values
         sd = torch.sqrt(variance).unsqueeze(1)
-        #ret = self.diameter / 1e10 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
+        #ret = (self.diameter / 1e10) * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
         ret = 5e-8 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
         return ret
     
