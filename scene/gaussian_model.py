@@ -215,7 +215,7 @@ class GaussianModel:
                                                         lr_delay_mult=0.03,
                                                         max_steps=training_args.iterations)
                             
-        self.s_prime_scheduler_args = get_expon_lr_func(1, 0.005,
+        self.s_prime_scheduler_args = get_expon_lr_func(1, 0.01,
                                                         lr_delay_steps=4000,
                                                         lr_delay_mult=0.1,
                                                         max_steps=training_args.iterations)
