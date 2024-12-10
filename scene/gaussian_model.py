@@ -210,7 +210,7 @@ class GaussianModel:
                                                         lr_delay_mult=0.05,
                                                         max_steps=training_args.iterations)
         
-        self.v_scheduler_args = get_expon_lr_func(0.01, 0.00006,
+        self.v_scheduler_args = get_expon_lr_func(0.5, 0.00006,
                                                         lr_delay_steps=3000,
                                                         lr_delay_mult=0.03,
                                                         max_steps=training_args.iterations)
