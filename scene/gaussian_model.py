@@ -210,7 +210,7 @@ class GaussianModel:
                                                         lr_delay_mult=0.05,
                                                         max_steps=training_args.iterations)
         
-        self.v_scheduler_args = get_expon_lr_func(0.1, 0.00001,
+        self.v_scheduler_args = get_expon_lr_func(0.1, 0.00006,
                                                         lr_delay_steps=3000,
                                                         lr_delay_mult=0.03,
                                                         max_steps=training_args.iterations)
@@ -234,10 +234,10 @@ class GaussianModel:
             elif param_group["name"] == "growth_length_s":
                 lr = self.growth_length_s_scheduler_args(iteration)
                 param_group['lr'] = lr
-            """ elif param_group["name"] == "v":
+            elif param_group["name"] == "v":
                 lr = self.v_scheduler_args(iteration)
                 param_group['lr'] = lr
-            elif param_group["name"] == "s_prime":
+            """ elif param_group["name"] == "s_prime":
                 lr = self.s_prime_scheduler_args(iteration)
                 param_group['lr'] = lr """
 
