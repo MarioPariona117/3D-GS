@@ -51,8 +51,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         #print(f"{torch.max(image)}")
         average = 1 if len(last_n) < 1 else total / len(last_n)
         # If it's significantly better than the average loss, add some noise 40% of the time.
-        if idx in image_losses and image_losses[idx] > average * 0.8 and iteration > 10000 and iteration < 20000 and random.random() < 0.7:
-            noise = torch.randn_like(image) * 0.02
+        if idx in image_losses and image_losses[idx] > average * 0.8 and iteration > 10000 and iteration < 20000 and random.random() < 0.5:
+            noise = torch.randn_like(image) * 0.01
             noise = noise.to(image.device)
             augmented_image = image + noise
             augmented_image = torch.clamp(augmented_image, 0, 1)  # Clamp to valid range
