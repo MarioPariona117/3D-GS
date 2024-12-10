@@ -152,9 +152,13 @@ class GaussianModel:
         self.newly_cloned = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
 
     def initialise_epo_split(self, initialisation_points_count):
+        samples = self._xyz.detach().clone()[torch.randperm(self._xyz.shape[0])[:12000]]
+        differences = samples[:,None,:] - samples[None,:,:]
+        self.diameter = torch.sqrt(torch.max(torch.sum(differences ** 2, dim = -1)))
+        #print(f"{self.diameter}")
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
-        self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], - 0.019, device="cuda", requires_grad=True))
-        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], - (5e-2 + 2e-7), device="cuda", requires_grad=True))
+        self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], -0.019, device="cuda", requires_grad=True))
+        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], -(5e-2), device="cuda", requires_grad=True))
         # Gradients for thos values
         self.d_xyz_d_s_prime = torch.zeros((initialisation_points_count, 1), device = "cuda")
         self.d_xyz_d_v = torch.zeros((initialisation_points_count, 1), device = "cuda")
@@ -206,9 +210,14 @@ class GaussianModel:
                                                         lr_delay_mult=0.05,
                                                         max_steps=training_args.iterations)
         
-        self.v_scheduler_args = get_expon_lr_func(0.0002, 0.000005,
-                                                        lr_delay_steps=6000,
-                                                        lr_delay_mult=0.25,
+        self.v_scheduler_args = get_expon_lr_func(0.1, 0.00001,
+                                                        lr_delay_steps=3000,
+                                                        lr_delay_mult=0.03,
+                                                        max_steps=training_args.iterations)
+                            
+        self.s_prime_scheduler_args = get_expon_lr_func(1, 0.005,
+                                                        lr_delay_steps=4000,
+                                                        lr_delay_mult=0.1,
                                                         max_steps=training_args.iterations)
 
     def update_learning_rate(self, iteration):
@@ -225,9 +234,12 @@ class GaussianModel:
             elif param_group["name"] == "growth_length_s":
                 lr = self.growth_length_s_scheduler_args(iteration)
                 param_group['lr'] = lr
-            elif param_group["name"] == "v":
+            """ elif param_group["name"] == "v":
                 lr = self.v_scheduler_args(iteration)
                 param_group['lr'] = lr
+            elif param_group["name"] == "s_prime":
+                lr = self.s_prime_scheduler_args(iteration)
+                param_group['lr'] = lr """
 
 
     # TODO: Add EPO variables to capture and restore
@@ -640,7 +652,8 @@ class GaussianModel:
         new_s_prime = self._s_prime[selected_pts_mask].repeat(2, 1)
 
         new_v = self._v[selected_pts_mask].repeat(2, 1)
-        phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
+        #e^-480/k = 1.2
+        phi = (550 / self.diameter) * (1/(1 + torch.exp(-new_v))) + 1
         # Especially check activations
         new_scaling = self.scaling_inverse_activation(self.get_scaling[selected_pts_mask].repeat(2,1) / phi)
 
@@ -749,7 +762,7 @@ class GaussianModel:
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals, dim = 1).values
         sd = torch.sqrt(variance).unsqueeze(1)
-        ret = 5e-8 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
+        ret = self.diameter / 1e10 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
         return ret
     
     def calc_evolutive_density_control_param_grads (self):
