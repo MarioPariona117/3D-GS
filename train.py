@@ -60,6 +60,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         return image
 
     def record_loss(idx, loss, average_window_size=50):
+        nonlocal total
         # Record loss for noise augmentation
         image_losses[idx] = loss
         if len(last_n) >= average_window_size:
