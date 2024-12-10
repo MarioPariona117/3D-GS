@@ -713,11 +713,11 @@ class GaussianModel:
 
     def calc_growth_dir_soft(self, selected_pts_mask, temperature=1e-2):
         """A differentiable replacement for argmax"""
-        index_soft = torch.nn.functional.softmax(self._growth_directions_probabilities[selected_pts_mask] / temperature, dim = 1)
+        index_soft = torch.nn.functional.softmax(self._growth_directions_probabilities / temperature, dim = 1)
         # TODO: Rename and explain index_directions
         self.index_directions = index_soft.unsqueeze(-1) * self._growth_directions
         self.index_directions.retain_grad()
-        return self.index_directions.sum(dim=1)
+        return self.index_directions[selected_pts_mask].sum(dim=1)
 
     def calc_growth_dir_repara(self, selected_pts_mask):
         index = torch.argmax(self._growth_directions_probabilities[selected_pts_mask], dim=1)
