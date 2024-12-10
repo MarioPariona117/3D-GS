@@ -202,7 +202,7 @@ class GaussianModel:
                                                         max_steps=training_args.iterations)
 
         self._growth_length_s_scheduler_args = get_expon_lr_func(2.5, 0.01,
-                                                        lr_delay_steps=3000,
+                                                        lr_delay_steps=6000,
                                                         lr_delay_mult=0.1,
                                                         max_steps=training_args.iterations)
 
