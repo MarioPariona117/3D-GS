@@ -201,9 +201,14 @@ class GaussianModel:
                                                         lr_delay_mult=training_args.exposure_lr_delay_mult,
                                                         max_steps=training_args.iterations)
 
-        self._growth_length_s_scheduler_args = get_expon_lr_func(2.5, 0.01,
+        self.growth_length_s_scheduler_args = get_expon_lr_func(2.5, 0.01,
                                                         lr_delay_steps=6000,
-                                                        lr_delay_mult=0.1,
+                                                        lr_delay_mult=0.05,
+                                                        max_steps=training_args.iterations)
+        
+        self.v_scheduler_args = get_expon_lr_func(0.0002, 0.000005,
+                                                        lr_delay_steps=6000,
+                                                        lr_delay_mult=0.25,
                                                         max_steps=training_args.iterations)
 
     def update_learning_rate(self, iteration):
@@ -216,11 +221,14 @@ class GaussianModel:
             if param_group["name"] == "xyz":
                 lr = self.xyz_scheduler_args(iteration)
                 param_group['lr'] = lr
-                return lr
+                # return lr
             elif param_group["name"] == "growth_length_s":
-                lr = self._growth_length_s_scheduler_args(iteration)
+                lr = self.growth_length_s_scheduler_args(iteration)
                 param_group['lr'] = lr
-                return lr
+            elif param_group["name"] == "v":
+                lr = self.v_scheduler_args(iteration)
+                param_group['lr'] = lr
+
 
     # TODO: Add EPO variables to capture and restore
     def capture(self):
