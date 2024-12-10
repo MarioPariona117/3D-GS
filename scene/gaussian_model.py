@@ -201,6 +201,11 @@ class GaussianModel:
                                                         lr_delay_mult=training_args.exposure_lr_delay_mult,
                                                         max_steps=training_args.iterations)
 
+        self._growth_length_s_scheduler_args = get_expon_lr_func(2.5, 0.01,
+                                                        lr_delay_steps=3000,
+                                                        lr_delay_mult=0.1,
+                                                        max_steps=training_args.iterations)
+
     def update_learning_rate(self, iteration):
         ''' Learning rate scheduling per step '''
         if self.pretrained_exposures is None:
@@ -210,6 +215,10 @@ class GaussianModel:
         for param_group in self.optimizer.param_groups:
             if param_group["name"] == "xyz":
                 lr = self.xyz_scheduler_args(iteration)
+                param_group['lr'] = lr
+                return lr
+            elif param_group["name"] == "growth_length_s":
+                lr = self._growth_length_s_scheduler_args(iteration)
                 param_group['lr'] = lr
                 return lr
 
