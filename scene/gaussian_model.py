@@ -158,7 +158,7 @@ class GaussianModel:
         #print(f"{self.diameter}")
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
         self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], -0.019, device="cuda", requires_grad=True))
-        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], -(2e-2), device="cuda", requires_grad=True))
+        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], - 0.2, device="cuda", requires_grad=True))
         # Gradients for thos values
         self.d_xyz_d_s_prime = torch.zeros((initialisation_points_count, 1), device = "cuda")
         self.d_xyz_d_v = torch.zeros((initialisation_points_count, 1), device = "cuda")
@@ -212,7 +212,7 @@ class GaussianModel:
         
         self.v_scheduler_args = get_expon_lr_func(0.01, 0.000004,
                                                         lr_delay_steps=1000,
-                                                        lr_delay_mult=0.03,
+                                                        lr_delay_mult=0.1,
                                                         max_steps=training_args.iterations)
                             
         self.s_prime_scheduler_args = get_expon_lr_func(1, 0.01,
