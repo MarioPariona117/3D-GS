@@ -762,7 +762,8 @@ class GaussianModel:
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals, dim = 1).values
         sd = torch.sqrt(variance).unsqueeze(1)
-        ret = self.diameter / 1e10 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
+        #ret = self.diameter / 1e10 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
+        ret = 5e-8 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
         return ret
     
     def calc_evolutive_density_control_param_grads (self):
