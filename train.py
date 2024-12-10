@@ -55,6 +55,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             noise = noise.to(image.device)
             augmented_image = image + noise
             augmented_image = torch.clamp(augmented_image, 0, 1)  # Clamp to valid range
+            return augmented_image
 
         return image
 
