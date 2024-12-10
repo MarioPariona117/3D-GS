@@ -158,7 +158,7 @@ class GaussianModel:
         #print(f"{self.diameter}")
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
         self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], -0.019, device="cuda", requires_grad=True))
-        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], - 5.0, device="cuda", requires_grad=True))
+        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], - 2.50, device="cuda", requires_grad=True))
         # Gradients for thos values
         self.d_xyz_d_s_prime = torch.zeros((initialisation_points_count, 1), device = "cuda")
         self.d_xyz_d_v = torch.zeros((initialisation_points_count, 1), device = "cuda")
