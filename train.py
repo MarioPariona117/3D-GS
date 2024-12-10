@@ -11,7 +11,7 @@
 
 import os
 import torch
-from random import randint
+import random
 from utils.loss_utils import l1_loss, ssim
 from gaussian_renderer import render, network_gui
 import sys
@@ -22,6 +22,8 @@ from tqdm import tqdm
 from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
+from collections import defaultdict, deque
+
 try:
     from torch.utils.tensorboard import SummaryWriter
     TENSORBOARD_FOUND = True
@@ -42,7 +44,28 @@ except:
 
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
 
-    from collections import defaultdict
+    image_losses = {}
+    last_n = deque([])
+    total = 0
+    def augment_image(image, idx):
+        average = 1 if len(last_n) < 1 else total / len(last_n)
+        # If it's significantly better than the average loss, add some noise 40% of the time.
+        if idx in image_losses and image_losses[idx] < average * 0.8 and random.random() < 0.4:
+            noise = torch.randn_like(image) * 0.03
+            noise = noise.to(image.device)
+            augmented_image = image + noise
+            augmented_image = torch.clamp(augmented_image, 0, 1)  # Clamp to valid range
+
+        return image
+
+    def record_loss(idx, loss, average_window_size=50):
+        # Record loss for noise augmentation
+        image_losses[idx] = loss
+        if len(last_n) >= average_window_size:
+            total -= last_n.popleft()
+        total += loss
+        last_n.append(loss)
+
     gls_mean = defaultdict(float)
     sprime_mean = defaultdict(float)
     v_mean = defaultdict(float)
@@ -103,7 +126,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         if not viewpoint_stack:
             viewpoint_stack = scene.getTrainCameras().copy()
             viewpoint_indices = list(range(len(viewpoint_stack)))
-        rand_idx = randint(0, len(viewpoint_indices) - 1)
+        rand_idx = random.randint(0, len(viewpoint_indices) - 1)
         viewpoint_cam = viewpoint_stack.pop(rand_idx)
         vind = viewpoint_indices.pop(rand_idx)
 
@@ -122,6 +145,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
             # Loss
             gt_image = viewpoint_cam.original_image.cuda()
+            gt_image = augment_image(gt_image, rand_idx)
+
             Ll1 = l1_loss(image, gt_image)
             if FUSED_SSIM_AVAILABLE:
                 ssim_value = fused_ssim(image.unsqueeze(0), gt_image.unsqueeze(0))
@@ -181,6 +206,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
             if iteration % 10 == 0:
                 progress_bar.set_postfix({"Loss": f"{ema_loss_for_log:.{7}f}", "Depth Loss": f"{ema_Ll1depth_for_log:.{7}f}"})
+                record_loss(rand_idx, ema_loss_for_log)
                 progress_bar.update(10)
             if iteration == opt.iterations:
                 progress_bar.close()
