@@ -237,9 +237,9 @@ class GaussianModel:
             elif param_group["name"] == "v":
                 lr = self.v_scheduler_args(iteration)
                 param_group['lr'] = lr
-            """ elif param_group["name"] == "s_prime":
+            elif param_group["name"] == "s_prime":
                 lr = self.s_prime_scheduler_args(iteration)
-                param_group['lr'] = lr """
+                param_group['lr'] = lr
 
 
     # TODO: Add EPO variables to capture and restore
