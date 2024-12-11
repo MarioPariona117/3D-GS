@@ -183,11 +183,12 @@ def readColmapSceneInfo(path, images, depths, eval, train_test_exp, llffhold=8):
             print("------------LLFF HOLD-------------")
             cam_names = [cam_extrinsics[cam_id].name for cam_id in cam_extrinsics]
             cam_names = sorted(cam_names)
-            idx, names = enumerate(cam_names)
+            #test_cam_names_list = [name for idx, name in enumerate(cam_names) if idx % llffhold == 0]
+
+            #idx, name = enumerate(cam_names)
             import random
             random.seed(0)
-            test_cam_names_list = random.choice(names, len(cam_names)//10 + 1)
-            #test_cam_names_list = [name for idx, name in enumerate(cam_names) if idx % llffhold == 0]
+            test_cam_names_list = random.sample(cam_names, len(cam_names)//10 + 1)
         else:
             with open(os.path.join(path, "sparse/0", "test.txt"), 'r') as file:
                 test_cam_names_list = [line.strip() for line in file]
