@@ -26,9 +26,9 @@ comparison = """
 for scenes in DIRECTORY.values():
     for scene in scenes:
         comparison += f"""
-            \\includegraphics[width=0.3\\textwidth]{{../o-3dgs/eval/{scene}/test/ours_30000/gt/00000.png}} &
-            \\includegraphics[width=0.3\\textwidth]{{../o-3dgs/eval/{scene}/test/ours_30000/renders/00000.png}} & 
-            \\includegraphics[width=0.3\\textwidth]{{../o-3dgs/eval/{scene}/test/ours_30000/renders/00000.png}} \\\\"""
+            \\includegraphics[width=0.26\\textwidth]{{../o-3dgs/eval/{scene}/test/ours_30000/gt/00000.png}} &
+            \\includegraphics[width=0.26\\textwidth]{{../o-3dgs/eval/{scene}/test/ours_30000/renders/00000.png}} & 
+            \\includegraphics[width=0.26\\textwidth]{{../o-3dgs/eval/{scene}/test/ours_30000/renders/00000.png}} \\\\"""
 
 comparison += """
     \\end{tabular}

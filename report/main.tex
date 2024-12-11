@@ -54,7 +54,6 @@ Prior research on the novel technique, 3D-Gaussian Splatting, presents the idea 
 
 To improve performance, Kerbl et al. presents the idea of Adaptive Density Control (ADC). At fixed intervals, the algorithm performs 3 operations: \textbf{Cloning}, \textbf{Splitting}, and \textbf{Pruning}. Each of these operations affects the density of the Splats in the scene, allowing the model to dynamically adjust the number of Gaussians, increasing the Splat density in under-reconstructed regions of the scene, and vice versa. Hence, the ADC process improves the representation of the scene over time and ensures that the Gaussians are distributed more effectively, focusing computational resources on the most important areas of the scene.
 
-%, will first delete the Gaussians whose transparency $\alpha$ is less than a threshold $\epsilon_\alpha$.\\
 
 %Then, it will add new Gaussians to the scene based on the density of the existing ones. This adaptive approach allows the model to dynamically adjust the number of Gaussians, improving the representation of the scene over time. The process ensures that the Gaussians are distributed more effectively, focusing computational resources on the most important areas of the scene.
 
@@ -129,7 +128,7 @@ The splitting operation is enhanced by introducing learnable parameters, allowin
 
 The Split operation is similarly modified to allow for the optimization of the splitting strategy during training. The key idea is to introduce learnable parameters for the split mean shift and scaling factor of the newly Split Splats, which are optimized using gradient descent. This allows the model to dynamically adjust the position and scale of the newly Split Splats based on the training objectives. 
 
-We aim to optimize the relative positions of the 2 newly split Splats. We denote the position of the original Splat $\mu$, and the relative positions of the 2 newly split Splats $\delta \mu$ and $- \delta \mu$. $\delta \mu$ is optimized through the introduction of a learnable parameter \textbf{s prime} ($s'$), which is used in the calculation of $\delta \mu$
+We aim to optimize the relative positions of the 2 newly split Splats. We denote the position of the original Splat $\mu$, and the relative positions of the 2 newly split Splats $\delta \mu$ and $- \delta \mu$. $\delta \mu$ is optimized through the introduction of a learnable parameter $s'$, which is used in the calculation of $\delta \mu$
 
 We also aim to optimize the scale $\varphi$ of the 2 newly split Splats with respect to their Parent. We introduce the variable $\phi$, which is used as a scaling factor such that $\varphi_{\text{new}} = \frac{\varphi_{\text{old}}}{\phi}$. $\phi$ is optimized through the introduction of another learnable parameter $\mathbf{v}(v)$, which is used in its calculation.
 
@@ -161,42 +160,46 @@ Zhan and Liang et al. provided pseudocode for the implementation of a suitable a
     \begin{minipage}{0.70\textwidth}
         \begin{algorithm}[H]
         \input{assets/clone_algo}
+        \caption{Clone Algorithm}
+        \label{alg:clone_algo}
         \end{algorithm}
-\end{minipage}
+    \end{minipage}
 \end{center}
 
 In their implementation, Zhan and Liang et al. chose to optimize the growth direction $d$ using the aforementioned algorithm. For the growth length $l$, they directly learned the growth distance by using the standard deviation of the Parent Splat as a constraint. Specifically, they set $l = v \times \frac{1}{1 + e^{-s}}$, where $s$ is a learnable parameter and $v = 2 \sigma$, with $\sigma$ being the maximum standard deviation of the Parent Splat.
 
-Our project reimplements the work of Zhan and Liang et al., similarly choosing to optimize Clone direction $d$ using the algorithm shown in \textbf{Figure 2.4}, by learning the parameter \textbf{growth direction probabilities} ($p$), and optimize Clone length $l$ using the formula $l = v \times \frac{1}{1 + e^{-s}}$, by learning the parameter \textbf{growth length s} ($s$).
+Our project reimplements the work of Zhan and Liang et al., similarly choosing to optimize Clone direction $d$ using the algorithm shown in Algorithm~\ref{alg:clone_algo}, by learning the parameter growth direction probabilities ($p$), and optimize Clone length $l$ using the formula $l = v \times \frac{1}{1 + e^{-s}}$, by learning the parameter growth length $s$.
 
 We employ the reparameterization trick in our forward pass, detaching appropriate tensors from the computation graph such that the actual growth direction $d$ is selected using the Argmax function, but the calculation of gradients in the backward pass is performed as though the Softmax function was used instead.
 
 \subsubsection{Backward Pass}
-In the backward pass of the original 3D-GS implementation by Kerbl et al., the backward pass of the image rendering process calculates gradients for the original parameters of the Splats, which include their positions $\mu$. Unfortunately, the computation of gradients in the backward pass do not flow further down the computation graph to our newly introduced learnable parameters $p$ and $s$.
+In the backward pass of the original 3D-GS implementation by Kerbl et al., the backward pass of the image rendering process calculates gradients for the original parameters of the Splats, which include their positions $\mu$. Unfortunately, the computation of gradients in the backward pass does not flow further down the computation graph to our newly introduced learnable parameters $p$ and $s$.
 
-Hence, we manually calculate and propogate the gradients of $p$ and $s$ using chain rule. We know that for the Clone operation, the formula is as follows:
-\[ \mu_{\text{new}} = \mu_{\text{old}} + \delta \mu  \]
-\[ = d(p) \times l(s) \]
-We also know that the parameters $p$ and $s$ affect no other parameters in the model, and hence their impact on the loss value is dependent solely on their impact on \(\mu_{\text{new}}\). Hence, we can say that
-\[ \frac{\partial \text{loss}}{\partial p} = \frac{\partial \text{loss}}{\partial \mu_{\text{new}}} \times \frac{\partial \mu_{\text{new}}}{\partial p} \]
-and similarly
-\[ \frac{\partial \text{loss}}{\partial s} = \frac{\partial \text{loss}}{\partial \mu_{\text{new}}} \times \frac{\partial \mu_{\text{new}}}{\partial s} \]
-Note that $\frac{\partial \text{loss}}{\partial \mu_{\text{new}}}$ can be obtained from the back-propagation of gradients from the loss to the means of the Splats, which is calculated in the original implementation by Kerbl et al.. To obtain the gradients for only the newly Cloned Splats, we store a mask of the newly Cloned points, when they are created.
+Hence, we manually calculate and propagate the gradients of $p$ and $s$ using the chain rule. For the Clone operation, the formula is as follows:
+\[ \mu_{\text{new}} = \mu_{\text{old}} + \delta \mu \]
+\[ \delta \mu = d(p) \cdot l(s) \]
 
-To obtain $\frac{\partial \mu_{\text{new}}}{\partial p}$ and $\frac{\partial \mu_{\text{new}}}{\partial s}$, we can use PyTorch's automatic gradient calculation to automatically calculate them using the positions of the newly Cloned Splats, when they are calculated.
+The parameters $p$ and $s$ affect no other parameters in the model, and hence their impact on the loss value is dependent solely on their impact on $\mu_{\text{new}}$. Therefore, we can say that:
+\[ \frac{\partial \text{loss}}{\partial p} = \frac{\partial \text{loss}}{\partial \mu_{\text{new}}} \cdot \frac{\partial \mu_{\text{new}}}{\partial p} \]
+and similarly:
+\[ \frac{\partial \text{loss}}{\partial s} = \frac{\partial \text{loss}}{\partial \mu_{\text{new}}} \cdot \frac{\partial \mu_{\text{new}}}{\partial s} \]
 
-In actual implementation, we note that since $\frac{\partial \text{loss}}{\partial \mu}$ is a $N \times 3$ matrix, where $N$ is the total number of Splats, with $\frac{\partial \text{loss}}{\partial \mu}_{ij}$ representing the contribution to the loss from the $a$-coordinate of $\mu_{i}$, with
+Note that $\frac{\partial \text{loss}}{\partial \mu_{\text{new}}}$ can be obtained from the back-propagation of gradients from the loss to the means of the Splats, which is calculated in the original implementation by Kerbl et al. To obtain the gradients for only the newly Cloned Splats, we store a mask of the newly Cloned points when they are created.
+
+To obtain $\frac{\partial \mu_{\text{new}}}{\partial p}$ and $\frac{\partial \mu_{\text{new}}}{\partial s}$, we can use PyTorch's automatic gradient calculation to compute them using the positions of the newly Cloned Splats when they are calculated.
+
+In actual implementation, since $\frac{\partial \text{loss}}{\partial \mu}$ is an $N \times 3$ matrix, where $N$ is the total number of Splats, with $\frac{\partial \text{loss}}{\partial \mu}_{ij}$ representing the contribution to the loss from the $a$-coordinate of $\mu_{i}$, where:
 \[ a = \begin{cases}
 x & \textrm{if }j=1\\
 y & \textrm{if }j=2\\
 z & \textrm{if }j=3\\
 \end{cases} \]
 
-we have to split $\frac{\partial \mu_{\text{new}}}{\partial p}$ into an $N \times 3 \times m$ tensor, where $m$ represents the number of discrete growth directions. Here, $\frac{\partial \mu_{\text{new}}}{\partial p}_{ijk}$ represents the contribution to the $a$-coordinate in $\mu_{\text{new}}$ by the $k$-th probability in $p_i$. The final multiplication gives us the desired shape $N \times m$, with each $\frac{\partial \text{loss}}{\partial p}_{ik}$ representing the contribution to the loss by the $k$-th probability in $p_i$.
+we split $\frac{\partial \mu_{\text{new}}}{\partial p}$ into an $N \times 3 \times m$ tensor, where $m$ represents the number of discrete growth directions. Here, $\frac{\partial \mu_{\text{new}}}{\partial p}_{ijk}$ represents the contribution to the $a$-coordinate in $\mu_{\text{new}}$ by the $k$-th probability in $p_i$. The final multiplication gives us the desired shape $N \times m$, with each $\frac{\partial \text{loss}}{\partial p}_{ik}$ representing the contribution to the loss by the $k$-th probability in $p_i$.
 
-Similarly, we split $\frac{\partial \mu_{\text{new}}}{\partial s}$ into a $N \times 3$ tensor, with $\frac{\partial \mu_{\text{new}}}{\partial s}_{ij}$ representing the contribution to the $a$-coordinate in $\mu_{\text{new}}$ by $s_{i}$. The final calculation of $\frac{\partial \text{loss}}{\partial s}$ hence gives the desired shape $N \times 1$.
+Similarly, we split $\frac{\partial \mu_{\text{new}}}{\partial s}$ into an $N \times 3$ tensor, with $\frac{\partial \mu_{\text{new}}}{\partial s}_{ij}$ representing the contribution to the $a$-coordinate in $\mu_{\text{new}}$ by $s_{i}$. The final calculation of $\frac{\partial \text{loss}}{\partial s}$ hence gives the desired shape $N \times 1$.
 
-It is important to note that we made the choice to update gradients for the Parent Splats, and not the newly Cloned Splats, because the effect on the loss calculated was due to the clone operation called using the Parent Splats' parameters.
+It is important to note that we chose to update gradients for the Parent Splats, and not the newly Cloned Splats, because the effect on the loss calculated was due to the clone operation called using the Parent Splats' parameters.
 
 \subsection{Splitting}
 The splitting mechanism is modified to be learnable through backpropagation. Instead of a fixed rule for when to split, the system learns optimal split points based on training data, which ensures adaptability to various scenes.
@@ -276,7 +279,7 @@ For the MipNeRF360 outdoor dataset, we used the Bicycle and Stump scenes. From t
 
 [Big picture of as Figure 5 in 3DGS]
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \include{aux/comparison}
     \caption{Comparison of Ground Truth, 3D-GS, and Ours across different scenes.}
