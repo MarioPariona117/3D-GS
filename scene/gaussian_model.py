@@ -671,7 +671,7 @@ class GaussianModel:
         x = torch.cat((x, -x))
         new_xyz = x + self.get_xyz[selected_pts_mask].repeat(2, 1)
         new_xyz.backward(torch.ones_like(new_xyz))
-        print(self._s_prime.grad)
+        print(torch.sum(self._s_prime.grad))
         self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad, self._s_prime.grad[selected_pts_mask].repeat(2, 1)))
         new_s_prime = self._s_prime[selected_pts_mask].repeat(2, 1)
 
