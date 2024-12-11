@@ -30,5 +30,8 @@ Playroom_Reconstruction_Inputs_Outputs.zip
 *.pytxcode
 *.out
 *.toc
+*.bbl
+*.blg
+*.bib
 
 colab/

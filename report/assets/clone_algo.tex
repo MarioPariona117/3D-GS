@@ -1,0 +1,18 @@
+\captionof{algorithm}{Pseudo-code of forward \& backward propagation in primitive growth spherical/radial distribution optimization}
+\textbf{Input:} \\
+potential grow directions $D = \{d_1, d_2, \dots, d_N\}$ / potential grow distance $T = \{t_1, t_2, \dots, t_N\}$ \\
+grow direction/distance probability $Q = [p_1, p_2, \dots, p_N]$ \\
+\textbf{Forward propagation:}
+\vspace*{-0.75em}
+\begin{enumerate}[itemsep=-2pt]
+    \item index $= \text{Argmax}(Q)$
+    \item index-hard $= \text{One-Hot}(\text{index})$
+    \item grow direction $d = \text{Matmul}(\text{index-hard}, D)$ / grow distance $t = \text{Matmul}(\text{index-hard}, T)$
+\end{enumerate}
+\vspace*{-0.75em}
+\textbf{Backward propagation:}
+\vspace*{-0.75em}
+\begin{enumerate}[itemsep=-2pt]
+    \item index-soft $= \text{Softmax}(Q)$
+    \item grow direction $d = \text{Matmul}(\text{index-soft}, D)$ / grow distance $t = \text{Matmul}(\text{index-soft}, T)$
+\end{enumerate}
