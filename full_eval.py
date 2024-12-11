@@ -75,7 +75,7 @@ if not args.skip_training:
         s_time = time.time()
         os.system("python train.py -s " + source + " -i images_4 -m " + args.output_path + "/" + scene + common_args)
         with open(os.path.join(args.output_path,scene,"timing.txt"), 'w') as file:
-            file.write(f"{time.time() - s_time}")
+            file.write(f"{(time.time() - s_time) / 60.0}")
             
     for scene in mipnerf360_indoor_scenes:
         source = args.mipnerf360 + "/" + scene
