@@ -663,21 +663,17 @@ class GaussianModel:
         selected_pts_mask = torch.where(padded_grad >= grad_threshold, True, False)
         selected_pts_mask = torch.logical_and(selected_pts_mask,
                                               torch.max(self.get_scaling, dim=1).values > self.percent_dense*scene_extent)
-        
-        # TODO: Check the formulae
 
         # Create new points and find d(new_xyz)/d(s_prime)
         x = self.del_mu(selected_pts_mask)
-        x = torch.cat((x*(1+eps*np.random.choice([-1, 1])), -x))
+        x = torch.cat((x*(1+eps*np.random.choice([-1, 2])), -x))
         new_xyz = x + self.get_xyz[selected_pts_mask].repeat(2, 1)
         new_xyz.backward(torch.ones_like(new_xyz))
         self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad, self._s_prime.grad[selected_pts_mask].repeat(2, 1)))
         new_s_prime = self._s_prime[selected_pts_mask].repeat(2, 1)
 
         new_v = self._v[selected_pts_mask].repeat(2, 1)
-        #e^-480/k = 1.2
         phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
-        # Especially check activations
         new_scaling = self.scaling_inverse_activation(self.get_scaling[selected_pts_mask].repeat(2,1) / phi)
 
         new_scaling.backward(torch.ones_like(new_scaling))
@@ -725,9 +721,19 @@ class GaussianModel:
         new_xyz = self._xyz[selected_pts_mask] + togrow
         added_pts = new_xyz.size()[0]
 
-        # TODO: Fix clone_handle_gradients
-        new_newly_cloned = self.clone_handle_gradients(new_xyz, added_pts, selected_pts_mask)
+        togrow.backward(torch.ones_like(togrow), retain_graph=True)
+        # N x 128 x 3
+        self.d_togrow_d_growth_directions_probabilities = self.index_directions.grad.detach().clone()
+        self.d_togrow_d_growth_length_s = self._growth_length_s.grad.detach().clone()
+        self._growth_directions_probabilities.grad = None
+        self.index_directions.grad = None
+        self._growth_length_s.grad = None
+        self.index_directions.backward(torch.ones_like(self.index_directions))
+        self.d_index_prob_prob = self._growth_directions_probabilities.grad
 
+        new_newly_cloned = torch.ones(added_pts, device = "cuda", dtype = torch.bool)
+        self.just_cloned_mask = selected_pts_mask
+        
         new_features_dc = self._features_dc[selected_pts_mask]
         new_features_rest = self._features_rest[selected_pts_mask]
         new_opacities = self._opacity[selected_pts_mask]
@@ -764,7 +770,7 @@ class GaussianModel:
         
         return new_newly_cloned
 
-    def calc_growth_dir_soft(self, selected_pts_mask, temperature=1e-2):
+    def calc_growth_dir_soft(self, selected_pts_mask, temperature=1e-3):
         """A differentiable replacement for argmax"""
         index_soft = torch.nn.functional.softmax(self._growth_directions_probabilities / temperature, dim = 1)
         # TODO: Rename and explain index_directions
