@@ -634,9 +634,9 @@ class GaussianModel:
         self.denom = torch.zeros((self.get_num_points, 1), device="cuda")
         self.max_radii2D = torch.zeros((self.get_num_points), device="cuda")
     
-    def del_mu(self, selected_pts_mask, eps=1e-5):
+    def del_mu(self, selected_pts_mask):
         # Get matrix from quaternion.
-        rots = build_rotation(self._rotation[selected_pts_mask]).repeat(2, 1, 1)
+        rots = build_rotation(self._rotation[selected_pts_mask])
 
         stds = self.get_scaling[selected_pts_mask]
 
@@ -644,11 +644,10 @@ class GaussianModel:
 
         # First half is for del_mu, second half is for -del_mu
         # Multiply by 1+eps to preserve gradients (zeroes out otherwise)
-        S = torch.cat((S*(1+eps), -S), dim=0)
-
+        
         return torch.bmm(rots, S.unsqueeze(-1)).squeeze(-1)
 
-    def densify_and_split(self, grads, grad_threshold, scene_extent):
+    def densify_and_split(self, grads, grad_threshold, scene_extent, eps=1e-5):
         """Perform EPO split
         
         Chooses points that satisfy the gradient condition.
@@ -668,14 +667,17 @@ class GaussianModel:
         # TODO: Check the formulae
 
         # Create new points and find d(new_xyz)/d(s_prime)
-        new_xyz = self.del_mu(selected_pts_mask) + self.get_xyz[selected_pts_mask].repeat(2, 1)
+        x = self.del_mu(selected_pts_mask)
+        x = torch.cat((x, -x))
+        new_xyz = x + self.get_xyz[selected_pts_mask].repeat(2, 1)
         new_xyz.backward(torch.ones_like(new_xyz))
-        self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad.detach().clone(), self._s_prime.grad[selected_pts_mask].detach().clone().repeat(2, 1)))
+        print(self._s_prime.grad)
+        self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad, self._s_prime.grad[selected_pts_mask].repeat(2, 1)))
         new_s_prime = self._s_prime[selected_pts_mask].repeat(2, 1)
 
         new_v = self._v[selected_pts_mask].repeat(2, 1)
         #e^-480/k = 1.2
-        phi = (550 / self.diameter) * (1/(1 + torch.exp(-new_v))) + 1
+        phi = 1.2 * (1/(1 + torch.exp(-new_v))) + 1
         # Especially check activations
         new_scaling = self.scaling_inverse_activation(self.get_scaling[selected_pts_mask].repeat(2,1) / phi)
 
@@ -784,7 +786,7 @@ class GaussianModel:
         eigvals = eigvals.type(torch.float)
         variance = torch.max(eigvals, dim = 1).values
         sd = torch.sqrt(variance).unsqueeze(1)
-        ret = (self.diameter / 1e3) * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
+        ret = 2 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
         # ret = 5e-4 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
         return ret
     
