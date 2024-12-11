@@ -158,7 +158,7 @@ class GaussianModel:
         #print(f"{self.diameter}")
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
         self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], 0.5, device="cuda", requires_grad=True))
-        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], -1.0, device="cuda", requires_grad=True))
+        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], 0.5, device="cuda", requires_grad=True))
         # Gradients for thos values
         self.d_xyz_d_s_prime = torch.zeros((initialisation_points_count, 1), device = "cuda")
         self.d_xyz_d_v = torch.zeros((initialisation_points_count, 1), device = "cuda")
@@ -208,14 +208,16 @@ class GaussianModel:
         def custom_lr_func(initial_lr, final_lr, lr_delay_steps, lr_delay_mult, max_steps):
             def lr_func(step):
                 if step < lr_delay_steps:
-                    # Apply a delay multiplier during the initial phase
-                    return initial_lr * (lr_delay_mult + (1 - lr_delay_mult) * (step / lr_delay_steps))
+                    # Linear interpolation during the delay phase
+                    delay_factor = lr_delay_mult + (1 - lr_delay_mult) * (step / lr_delay_steps)
+                    return initial_lr * delay_factor
                 else:
-                    # Apply exponential decay after the delay phase
-                    decay_rate = (final_lr / initial_lr) ** (1 / (max_steps - lr_delay_steps))
+                    # Start exponential decay from the end of the delay phase
+                    effective_initial_lr = initial_lr * (lr_delay_mult + (1 - lr_delay_mult))
+                    decay_rate = (final_lr / effective_initial_lr) ** (1 / (max_steps - lr_delay_steps))
                     adjusted_step = step - lr_delay_steps
-                    return initial_lr * (decay_rate ** adjusted_step)
-            
+                    return effective_initial_lr * (decay_rate ** adjusted_step)
+
             return lr_func
 
         self.growth_length_s_scheduler_args = custom_lr_func(
@@ -226,9 +228,9 @@ class GaussianModel:
         )
 
         self.v_scheduler_args = custom_lr_func(
-            0.001, 0.00000004,
-            lr_delay_steps=1500,
-            lr_delay_mult=0.01,
+            0.01, 0.00001,
+            lr_delay_steps=1000,
+            lr_delay_mult=0.5,
             max_steps=training_args.iterations
         )
 
