@@ -878,10 +878,10 @@ class GaussianModel:
         new_opacity = self._opacity[selected_pts_mask].repeat(N,1)
         new_tmp_radii = self.tmp_radii[selected_pts_mask].repeat(N)
 
-        new_s_prime = self._s_prime[selected_pts_mask].repeat(N)
-        new_v = self._v[selected_pts_mask].repeat(N)
-        new_growth_directions_probabilities = self._growth_directions_probabilities[selected_pts_mask].repeat(N)
-        new_growth_length_s = self._growth_length_s[selected_pts_mask].repeat(N)
+        new_s_prime = self._s_prime[selected_pts_mask].repeat(N,1)
+        new_v = self._v[selected_pts_mask].repeat(N,1)
+        new_growth_directions_probabilities = self._growth_directions_probabilities[selected_pts_mask].repeat(N,1)
+        new_growth_length_s = self._growth_length_s[selected_pts_mask].repeat(N,1)
 
         new_newly_split = torch.zeros(selected_pts_mask.shape[0] * 2, device = "cuda", dtype = torch.bool)
         new_newly_cloned = torch.zeros(selected_pts_mask.shape[0] * 2, device = "cuda", dtype = torch.bool)
