@@ -13,11 +13,16 @@ import os
 from argparse import ArgumentParser
 import time
 
-mipnerf360_outdoor_scenes = ["bicycle", "stump"]     
+""" mipnerf360_outdoor_scenes = ["bicycle", "stump"]     
 mipnerf360_indoor_scenes = ["counter"]
 tanks_and_temples_scenes = ["train"]
 deep_blending_scenes = ["playroom"]
-llff_scenes = ["horns", "trex"]
+llff_scenes = ["horns", "trex"] """
+mipnerf360_outdoor_scenes = []     
+mipnerf360_indoor_scenes = ["room", "kitchen", "bonsai"]
+tanks_and_temples_scenes = []
+deep_blending_scenes = []
+llff_scenes = []
 # mipnerf360_outdoor_scenes = ["bicycle", "stump"]    
 # mipnerf360_indoor_scenes = ["counter"]
 # tanks_and_temples_scenes = ["truck", "train"]
