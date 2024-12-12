@@ -874,7 +874,15 @@ class GaussianModel:
         new_opacity = self._opacity[selected_pts_mask].repeat(N,1)
         new_tmp_radii = self.tmp_radii[selected_pts_mask].repeat(N)
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii)
+        new_s_prime = self._s_prime[selected_pts_mask].repeat(N)
+        new_v = self._v[selected_pts_mask].repeat(N)
+        new_growth_directions_probabilities = self._growth_directions_probabilities[selected_pts_mask].repeat(N)
+        new_growth_length_s = self._growth_length_s[selected_pts_mask].repeat(N)
+
+        new_newly_split = torch.zeros(selected_pts_mask.shape[0] * 2, device = "cuda", dtype = torch.bool)
+        new_newly_cloned = torch.zeros(selected_pts_mask.shape[0] * 2, device = "cuda", dtype = torch.bool)
+
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_split, new_newly_cloned)
 
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
         self.prune_points(prune_filter)
@@ -894,4 +902,12 @@ class GaussianModel:
 
         new_tmp_radii = self.tmp_radii[selected_pts_mask]
 
-        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii)
+        new_s_prime = self._s_prime[selected_pts_mask]
+        new_v = self._v[selected_pts_mask]
+        new_growth_directions_probabilities = self._growth_directions_probabilities[selected_pts_mask]
+        new_growth_length_s = self._growth_length_s[selected_pts_mask]
+
+        new_newly_split = torch.zeros(selected_pts_mask.shape[0], device = "cuda", dtype = torch.bool)
+        new_newly_cloned = torch.zeros(selected_pts_mask.shape[0], device = "cuda", dtype = torch.bool)
+
+        self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_split, new_newly_cloned)
