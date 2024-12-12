@@ -371,15 +371,15 @@ class GaussianModel:
             l.append(f'scale_{i}')
         for i in range(self._rotation.shape[1]):
             l.append(f'rot_{i}')
-        for i in range(self._s_prime.shape[1]):
-            l.append(f's_prime_{i}')
-        for i in range(self._v.shape[1]):
-            l.append(f'v_{i}')
+        # for i in range(self._s_prime.shape[1]):
+        #     l.append(f's_prime_{i}')
+        # for i in range(self._v.shape[1]):
+        #     l.append(f'v_{i}')
 
-        for i in range(self._growth_directions_probabilities.shape[1]):
-            l.append(f'growth_directions_probabilities_{i}')
-        for i in range(self._growth_length_s.shape[1]):
-            l.append(f'growth_length_s_{i}')
+        # for i in range(self._growth_directions_probabilities.shape[1]):
+        #     l.append(f'growth_directions_probabilities_{i}')
+        # for i in range(self._growth_length_s.shape[1]):
+        #     l.append(f'growth_length_s_{i}')
         return l
 
     def save_ply(self, path):
