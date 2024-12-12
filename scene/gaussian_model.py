@@ -393,10 +393,10 @@ class GaussianModel:
         scale = self._scaling.detach().cpu().numpy()
         rotation = self._rotation.detach().cpu().numpy()
 
-        s_prime = self._s_prime.detach().cpu().numpy()
-        v = self._v.detach().cpu().numpy()
-        growth_directions_probabilities = self._growth_directions_probabilities.detach().cpu().numpy()
-        growth_length_s = self._growth_length_s.detach().cpu().numpy()
+        # s_prime = self._s_prime.detach().cpu().numpy()
+        # v = self._v.detach().cpu().numpy()
+        # growth_directions_probabilities = self._growth_directions_probabilities.detach().cpu().numpy()
+        # growth_length_s = self._growth_length_s.detach().cpu().numpy()
 
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
 
@@ -450,29 +450,29 @@ class GaussianModel:
         for idx, attr_name in enumerate(rot_names):
             rots[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
-        s_prime_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("s_prime")]
-        s_prime_names = sorted(s_prime_names, key = lambda x: int(x.split('_')[-1]))
-        s_primes = np.zeros((xyz.shape[0], len(s_prime_names)))
-        for idx, attr_name in enumerate(s_prime_names):
-            s_primes[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        # s_prime_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("s_prime")]
+        # s_prime_names = sorted(s_prime_names, key = lambda x: int(x.split('_')[-1]))
+        # s_primes = np.zeros((xyz.shape[0], len(s_prime_names)))
+        # for idx, attr_name in enumerate(s_prime_names):
+        #     s_primes[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
-        v_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("v")]
-        v_names = sorted(v_names, key = lambda x: int(x.split('_')[-1]))
-        v = np.zeros((xyz.shape[0], len(v_names)))
-        for idx, attr_name in enumerate(v_names):
-            v[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        # v_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("v")]
+        # v_names = sorted(v_names, key = lambda x: int(x.split('_')[-1]))
+        # v = np.zeros((xyz.shape[0], len(v_names)))
+        # for idx, attr_name in enumerate(v_names):
+        #     v[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
-        growth_directions_probabilities_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_directions_probabilities")]
-        growth_directions_probabilities_names = sorted(growth_directions_probabilities_names, key = lambda x: int(x.split('_')[-1]))
-        growth_directions_probabilities = np.zeros((xyz.shape[0], len(growth_directions_probabilities_names)))
-        for idx, attr_name in enumerate(growth_directions_probabilities_names):
-            growth_directions_probabilities[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        # growth_directions_probabilities_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_directions_probabilities")]
+        # growth_directions_probabilities_names = sorted(growth_directions_probabilities_names, key = lambda x: int(x.split('_')[-1]))
+        # growth_directions_probabilities = np.zeros((xyz.shape[0], len(growth_directions_probabilities_names)))
+        # for idx, attr_name in enumerate(growth_directions_probabilities_names):
+        #     growth_directions_probabilities[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
-        growth_length_s_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_length_s")]
-        growth_length_s_names = sorted(growth_length_s_names, key = lambda x: int(x.split('_')[-1]))
-        growth_length_s = np.zeros((xyz.shape[0], len(growth_length_s_names)))
-        for idx, attr_name in enumerate(growth_length_s_names):
-            growth_length_s[:, idx] = np.asarray(plydata.elements[0][attr_name])
+        # growth_length_s_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_length_s")]
+        # growth_length_s_names = sorted(growth_length_s_names, key = lambda x: int(x.split('_')[-1]))
+        # growth_length_s = np.zeros((xyz.shape[0], len(growth_length_s_names)))
+        # for idx, attr_name in enumerate(growth_length_s_names):
+        #     growth_length_s[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
         self._xyz = nn.Parameter(torch.tensor(xyz, dtype=torch.float, device="cuda").requires_grad_(True))
         self._features_dc = nn.Parameter(torch.tensor(features_dc, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
@@ -481,11 +481,11 @@ class GaussianModel:
         self._scaling = nn.Parameter(torch.tensor(scales, dtype=torch.float, device="cuda").requires_grad_(True))
         self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
 
-        self._s_prime = nn.Parameter(torch.tensor(s_primes, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._v = nn.Parameter(torch.tensor(v, dtype=torch.float, device="cuda").requires_grad_(True))
+        # self._s_prime = nn.Parameter(torch.tensor(s_primes, dtype=torch.float, device="cuda").requires_grad_(True))
+        # self._v = nn.Parameter(torch.tensor(v, dtype=torch.float, device="cuda").requires_grad_(True))
 
-        self._growth_directions_probabilities = nn.Parameter(torch.tensor(growth_directions_probabilities, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._growth_length_s = nn.Parameter(torch.tensor(growth_length_s, dtype=torch.float, device="cuda").requires_grad_(True))
+        # self._growth_directions_probabilities = nn.Parameter(torch.tensor(growth_directions_probabilities, dtype=torch.float, device="cuda").requires_grad_(True))
+        # self._growth_length_s = nn.Parameter(torch.tensor(growth_length_s, dtype=torch.float, device="cuda").requires_grad_(True))
 
         self.active_sh_degree = self.max_sh_degree
 
