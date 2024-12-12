@@ -913,7 +913,9 @@ class GaussianModel:
         new_growth_directions_probabilities = self._growth_directions_probabilities[selected_pts_mask]
         new_growth_length_s = self._growth_length_s[selected_pts_mask]
 
-        new_newly_split = torch.zeros(selected_pts_mask.shape[0], device = "cuda", dtype = torch.bool)
-        new_newly_cloned = torch.zeros(selected_pts_mask.shape[0], device = "cuda", dtype = torch.bool)
+        added_pts = new_xyz.size()[0]
+
+        new_newly_split = torch.zeros(added_pts, device = "cuda", dtype = torch.bool)
+        new_newly_cloned = torch.zeros(added_pts, device = "cuda", dtype = torch.bool)
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_split, new_newly_cloned)
