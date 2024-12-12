@@ -77,11 +77,10 @@ def evaluate(model_paths):
                 print("  PSNR : {:>12.7f}".format(torch.tensor(psnrs).mean(), ".5"))
                 print("  LPIPS: {:>12.7f}".format(torch.tensor(lpipss).mean(), ".5"))
                 print("")
-
                 full_dict[scene_dir][method].update({"SSIM": torch.tensor(ssims).mean().item(),
                                                         "PSNR": torch.tensor(psnrs).mean().item(),
                                                         "LPIPS": torch.tensor(lpipss).mean().item(),
-                                                        "Memory": os.path.getsize(f"{scene_dir}/point_cloud/iteration_{method[5:]}/point_cloud.ply") / (1024 * 1024) + "MB" # Convert bytes to MB
+                                                        "Memory": str(os.path.getsize(f"{scene_dir}/point_cloud/iteration_{method[5:]}/point_cloud.ply") / (1024 * 1024)) + "MB" # Convert bytes to MB
                                                         })
                 per_view_dict[scene_dir][method].update({"SSIM": {name: ssim for ssim, name in zip(torch.tensor(ssims).tolist(), image_names)},
                                                             "PSNR": {name: psnr for psnr, name in zip(torch.tensor(psnrs).tolist(), image_names)},
