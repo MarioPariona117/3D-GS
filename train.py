@@ -183,12 +183,12 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
             if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                 size_threshold = 20 if iteration > opt.opacity_reset_interval else None
-                gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii)
+                gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii, iteration)
                 image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth = render_and_calc_loss()
                 """ print(gaussians._xyz.grad)
                 print(gaussians.growth_directions_probabilities.grad) """
-
-                gaussians.calc_evolutive_density_control_param_grads()
+                if iteration > 3000:
+                    gaussians.calc_evolutive_density_control_param_grads()
                 # print(f"growth_probs: {torch.max(gaussians.growth_directions_probabilities.grad)}")
                 # print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
                 # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
