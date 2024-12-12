@@ -1,0 +1,28 @@
+\begin{algorithmic}[1]
+    \State $M \gets \text{SfM Points}$ \Comment{Positions}
+    \State $S, C, A, S', V, GP, GL \gets \text{InitAttributes()}$ \Comment{Covariances, Colors, Opacities, Splitting Distance, Splitting Scaling, Growth Probabilities, Growth Lengths}
+    \State $i \gets 0$ \Comment{Iteration Count}
+    \While{not converged}
+        \If{\text{IsRefinementIteration}$(i)$}
+            \State $V, \hat{I} \gets \text{SampleTrainingView()}$ \Comment{Camera $V$ and Image}
+            \State $I \gets \text{Rasterize}(M, S, C, A, V, S', V, GP, GL)$
+            \State $L \gets \text{Loss}(I, \hat{I})$ \Comment{Loss}
+            \ForAll{Gaussians $(\mu, \Sigma, c, \alpha, s', v, gp, gl)$ in $(M, S, C, A, S', V, GP, GL)$}
+                \If{$\alpha < \epsilon$ or \text{IsTooLarge}$(\mu, \Sigma)$} \Comment{Pruning}
+                    \State \text{RemoveGaussian()}
+                \EndIf
+                \If{$\nabla_p L > \tau_p$} \Comment{Densification}
+                    \If{$\|\Sigma\| > \tau_S$} \Comment{Over-reconstruction}
+                        \State \text{SplitGaussian}$(\mu, \Sigma, c, \alpha, s', v)$
+                    \Else \Comment{Under-reconstruction}
+                        \State \text{CloneGaussian}$(\mu, \Sigma, c, \alpha, gp, gl)$
+                    \EndIf
+                \EndIf
+            \EndFor
+        \EndIf
+        \State $I \gets \text{Rasterize}(M, S, C, A, V, S', V, GP, GL)$
+        \State $L \gets \text{Loss}(I, \hat{I})$
+        \State $M, S, C, A, S', V, GP, GL \gets \text{Adam}(\nabla L)$ \Comment{Backprop \& Step}
+        \State $i \gets i + 1$
+    \EndWhile
+\end{algorithmic}

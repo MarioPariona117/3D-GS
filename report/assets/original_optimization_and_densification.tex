@@ -13,7 +13,7 @@
                     \State \text{RemoveGaussian()}
                 \EndIf
                 \If{$\nabla_p L > \tau_p$} \Comment{Densification}
-                    \If{$\|S\| > \tau_S$} \Comment{Over-reconstruction}
+                    \If{$\|\Sigma\| > \tau_S$} \Comment{Over-reconstruction}
                         \State \text{SplitGaussian}$(\mu, \Sigma, c, \alpha)$ 
                     \Else \Comment{Under-reconstruction}
                         \State \text{CloneGaussian}$(\mu, \Sigma, c, \alpha)$ 

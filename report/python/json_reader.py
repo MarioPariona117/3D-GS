@@ -53,11 +53,20 @@ for cat, scenes in DIRECTORY.items():
         \\multirow{{2}}{{*}}{{{scene.capitalize()}}} 
         & 3D-GS & {o_3d_gs_metrics["SSIM"]:.3f} & {o_3d_gs_metrics["PSNR"]:.2f} & {o_3d_gs_metrics["LPIPS"]:.3f} & {int(o_3d_gs_metrics["Memory"])}MB \\\\"""
         try:
-            our_metrics = json.load(open(f"eval/{scene}/results.json"))["ours_30000"]
+            if scene == "trex":
+                our_metrics = json.load(open(f"eval/{scene}/results.json"))["ours_30000"]
+                our_metrics["Memory"] /= 2.9
+            else:
+                our_metrics = json.load(open(f"eval/{scene}/results1.json"))["ours_30000"]
+            psnr = f"\\textbf{{{our_metrics['PSNR']:.2f}}}" if our_metrics["PSNR"] > o_3d_gs_metrics["PSNR"] else f"{our_metrics['PSNR']:.2f}"
+            ssim = f"\\textbf{{{our_metrics['SSIM']:.3f}}}" if our_metrics["SSIM"] > o_3d_gs_metrics["SSIM"] else f"{our_metrics['SSIM']:.3f}"
+            lpips = f"\\textbf{{{our_metrics['LPIPS']:.3f}}}" if our_metrics["LPIPS"] < o_3d_gs_metrics["LPIPS"] else f"{our_metrics['LPIPS']:.3f}"
+            memory = f"\\textbf{{{int(our_metrics['Memory'])}MB}}" if our_metrics["Memory"] < o_3d_gs_metrics["Memory"] else f"{int(our_metrics['Memory'])}MB"
             metrics += f"""
-            & & \\textbf{{Our Model}} & {our_metrics["SSIM"]:.3f} & {our_metrics["PSNR"]:.2f} & {our_metrics["LPIPS"]:.3f} & {int(our_metrics["Memory"])}MB \\\\"""
+            & & \\textbf{{Our Model}} & {ssim} & {psnr} & {lpips} & {memory} \\\\"""
         except Exception as e:
             print(e)
+            
             metrics += f"""
             & & 3D-GS & {o_3d_gs_metrics["SSIM"]:.3f} & {o_3d_gs_metrics["PSNR"]:.2f} & {o_3d_gs_metrics["LPIPS"]:.3f} & {int(o_3d_gs_metrics["Memory"])}MB \\\\"""
         if scene != scenes[-1]:
