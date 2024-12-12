@@ -888,7 +888,7 @@ class GaussianModel:
         new_newly_cloned = torch.zeros(added_points_count, device = "cuda", dtype = torch.bool)
         new_newly_split = torch.ones(added_points_count, device = "cuda", dtype = torch.bool)
 
-        self.d_xyz_d_s_prime = torch.concat((self.d_xyz_d_s_prime, self.d_xyz_d_s_prime.grad[selected_pts_mask].repeat(2, 1)))
+        self.d_xyz_d_s_prime = torch.concat((self.d_xyz_d_s_prime, self.d_xyz_d_s_prime[selected_pts_mask].repeat(2, 1)))
         self.d_xyz_d_v = torch.concat((self.d_xyz_d_v, self.d_xyz_d_v[selected_pts_mask].repeat(2, 1)))
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_split, new_newly_cloned)
