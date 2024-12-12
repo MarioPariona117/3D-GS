@@ -146,7 +146,7 @@ class GaussianModel:
         )
 
         # TODO: Why do we start with 1/100
-        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], - 1 / 2, device="cuda", requires_grad=True))
+        self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], 0.0, device="cuda", requires_grad=True))
         
         self.just_cloned_mask = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
         self.newly_cloned = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
@@ -161,8 +161,8 @@ class GaussianModel:
         self.diameter = torch.sqrt(torch.max(torch.sum(differences ** 2, dim = -1)))
         #print(f"{self.diameter}")
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
-        self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], 0.5, device="cuda", requires_grad=True))
-        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], 0.5, device="cuda", requires_grad=True))
+        self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], 0.0, device="cuda", requires_grad=True))
+        self._v = nn.Parameter(torch.full([initialisation_points_count, 1], 0.0, device="cuda", requires_grad=True))
         # Gradients for thos values
         self.d_xyz_d_s_prime = torch.zeros((initialisation_points_count, 1), device = "cuda")
         self.d_xyz_d_v = torch.zeros((initialisation_points_count, 1), device = "cuda")
@@ -256,7 +256,7 @@ class GaussianModel:
                 lr = self.xyz_scheduler_args(iteration)
                 param_group['lr'] = lr
                 # return lr
-            if param_group["name"] == "growth_length_s":
+            """ if param_group["name"] == "growth_length_s":
                 lr = self.growth_length_s_scheduler_args(iteration)
                 param_group['lr'] = lr
             if param_group["name"] == "v":
@@ -265,7 +265,7 @@ class GaussianModel:
                 # print(f"\n v learning rate is now {lr}")
             if param_group["name"] == "s_prime":
                 lr = self.s_prime_scheduler_args(iteration)
-                param_group['lr'] = lr
+                param_group['lr'] = lr """
 
 
     # TODO: Add EPO variables to capture and restore
@@ -583,12 +583,12 @@ class GaussianModel:
         grads[grads.isnan()] = 0.0
 
         self.tmp_radii = radii
-        if iteration <= 3000:
-            self.densify_and_clone_heuristic(grads, max_grad, extent)
-            self.densify_and_split_heuristic(grads, max_grad, extent)
-        else:
+        if iteration >= 3500:
             self.densify_and_clone(grads, max_grad, extent)
             self.densify_and_split(grads, max_grad, extent)
+        else:
+            self.densify_and_clone_heuristic(grads, max_grad, extent)
+            self.densify_and_split_heuristic(grads, max_grad, extent)
 
         prune_mask = (self.get_opacity < min_opacity).squeeze()
         if max_screen_size:
