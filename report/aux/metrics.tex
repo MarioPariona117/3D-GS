@@ -3,41 +3,35 @@
     \toprule
     \textbf{Category} & \textbf{Scene} & \textbf{Method} & \textbf{SSIM$\uparrow$} & \textbf{PSNR$\uparrow$} & \textbf{LPIPS$\downarrow$} & \textbf{Mem} \\
     \midrule
-    \multirow{4}{*}{\textbf{MipNeRF360 Outdoor}} & 
-        \multirow{2}{*}{Bicycle} 
-        & 3D-GS & 0.767 & 25.24 & 0.208 & 1167MB \\
-        & & \textbf{Our Model} & 0.767 & 25.24 & 0.208 & 1167MB \\
-            \cmidrule{2-7} &
-        \multirow{2}{*}{Stump} 
-        & 3D-GS & 0.772 & 26.63 & 0.216 & 1026MB \\
-        & & \textbf{Our Model} & 0.772 & 26.63 & 0.216 & 1026MB \\
-        \midrule
-    \multirow{2}{*}{\textbf{MipNeRF360 Indoor}} & 
+    \multirow{8}{*}{\textbf{MipNeRF360 Indoor}} & 
         \multirow{2}{*}{Counter} 
         & 3D-GS & 0.909 & 29.10 & 0.199 & 255MB \\
-        & & \textbf{Our Model} & 0.909 & 29.10 & 0.199 & 255MB \\
-        \midrule
-    \multirow{4}{*}{\textbf{Tanks \& Temples}} & 
-        \multirow{2}{*}{Truck} 
-        & 3D-GS & 0.885 & 25.42 & 0.142 & 487MB \\
-        & & \textbf{Our Model} & 0.885 & 25.42 & 0.142 & 487MB \\
+            & & \textbf{Our Model} & 0.909 & 29.07 & 0.198 & 855MB \\
             \cmidrule{2-7} &
+        \multirow{2}{*}{Kitchen} 
+        & 3D-GS & 0.928 & 31.49 & 0.125 & 378MB \\
+            & & \textbf{Our Model} & 0.928 & 31.40 & 0.126 & 1226MB \\
+            \cmidrule{2-7} &
+        \multirow{2}{*}{Bonsai} 
+        & 3D-GS & 0.943 & 32.34 & 0.204 & 252MB \\
+            & & \textbf{Our Model} & 0.942 & 32.35 & 0.203 & 820MB \\
+            \cmidrule{2-7} &
+        \multirow{2}{*}{Room} 
+        & 3D-GS & 0.921 & 31.65 & 0.217 & 309MB \\
+            & & 3D-GS & 0.921 & 31.65 & 0.217 & 309MB \\
+        \midrule
+    \multirow{2}{*}{\textbf{Tanks \& Temples}} & 
         \multirow{2}{*}{Train} 
         & 3D-GS & 0.821 & 22.13 & 0.196 & 257MB \\
-        & & \textbf{Our Model} & 0.821 & 22.13 & 0.196 & 257MB \\
-        \midrule
-    \multirow{2}{*}{\textbf{Deep Blending}} & 
-        \multirow{2}{*}{Playroom} 
-        & 3D-GS & 0.907 & 30.07 & 0.241 & 437MB \\
-        & & \textbf{Our Model} & 0.907 & 30.07 & 0.241 & 437MB \\
+            & & \textbf{Our Model} & 0.821 & 22.19 & 0.197 & 849MB \\
         \midrule
     \multirow{4}{*}{\textbf{LLFF}} & 
         \multirow{2}{*}{Horns} 
         & 3D-GS & 0.887 & 27.21 & 0.132 & 157MB \\
-        & & \textbf{Our Model} & 0.887 & 27.21 & 0.132 & 157MB \\
+            & & \textbf{Our Model} & 0.887 & 27.32 & 0.134 & 509MB \\
             \cmidrule{2-7} &
         \multirow{2}{*}{Trex} 
         & 3D-GS & 0.899 & 25.59 & 0.130 & 110MB \\
-        & & \textbf{Our Model} & 0.899 & 25.59 & 0.130 & 110MB \\
+            & & \textbf{Our Model} & 0.909 & 26.66 & 0.116 & 336MB \\
     \bottomrule
     \end{tabular}

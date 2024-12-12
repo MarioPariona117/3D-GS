@@ -1,7 +1,7 @@
 \documentclass[11pt]{report}
 
 \usepackage{MarioLeoYunStyle}
-\usepackage[utf8]{inputenc}
+% \usepackage[utf8]{inputenc}
 
 \usepackage{tikz}
 \usepackage{float}
@@ -9,7 +9,6 @@
 % \usepackage{algpseudocode}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
-\usepackage{caption} % Enables \captionof
 \usepackage{enumitem} % Required for customizing list formatting
 
 
@@ -48,49 +47,47 @@ These methods highlight the progression from traditional to modern approaches in
 
 \section{Overview of the Idea}
 
-The core idea of the first approach was the optimisation step, which creates a dense set of 3D Gaussians accurately representing the scne for free-view synthesis. For each Gaussian, we keep track of $p$, $\alpha$, and covariance $\Sigma$, as well as SH coefficients representing color $c$. The optimisation of these parameters is interleaved with steps to control the density of the Gaussians to better represent the scene.
+Prior research on 3D-Gaussian Splatting introduces representing scenes using 3D Gaussians (Splats) [Kerbl et al., 2023]. These Gaussians are instantiated using Structure From Motion (SfM) techniques and optimized via gradient descent. A key limitation is the lack of control over Splat density, making the optimization highly dependent on the initial point cloud quality. Under-reconstructed or over-reconstructed areas result in inappropriate Splat densities. To address this, Kerbl et al. propose \emph{Adaptive Density Control (ADC)}, which periodically performs \textbf{Cloning}, \textbf{Splitting}, and \textbf{Pruning} operations. These operations dynamically adjust Splat density, improving scene representation by increasing density in under-reconstructed regions and reducing it in over-reconstructed areas, thus focusing computational resources on critical parts of the scene.
 
-Prior research on the novel technique, 3D-Gaussian Splatting, presents the idea of representation of a scene using 3D Gaussians (Splats) [Kerbl et al., 2023]. 3D Gaussians are instantiated in a scene using Source From Motion (SfM) techniques. The properties of the 3D Gaussians are subsequently optimized using gradient descent. One limitation of this approach is the lack of control over the density of the Splats in the scene. This causes the results of the optimization process to be highly dependent on the quality of the point cloud output by the SfM process. For example, in areas that have been under-reconstructed or over-reconstructed, the density of the point cloud used to initialized from the source images will be too low or high, respectively, at those regions, causing the density of the Splats initialized accordingly to similarly be inappropriate for the representation of the scene.
+Our work builds upon the idea of ADC by implementing the concept of Evolutive Primitive Organization (EPO) as proposed by Zhan and Liang et al. EPO enhances the ADC mechanism by introducing learnable parameters for both the Cloning and Splitting operations. This allows the system to learn optimal strategies for growing and splitting primitives during training, removing the need for pre-defined heuristics. We are essentially replicating the same idea shown in their paper to validate their findings.
 
-To improve performance, Kerbl et al. presents the idea of Adaptive Density Control (ADC). At fixed intervals, the algorithm performs 3 operations: \textbf{Cloning}, \textbf{Splitting}, and \textbf{Pruning}. Each of these operations affects the density of the Splats in the scene, allowing the model to dynamically adjust the number of Gaussians, increasing the Splat density in under-reconstructed regions of the scene, and vice versa. Hence, the ADC process improves the representation of the scene over time and ensures that the Gaussians are distributed more effectively, focusing computational resources on the most important areas of the scene.
+For the Cloning operation, the key idea is to introduce learnable parameters for the growth direction and growth length of the newly Cloned Splats, which are optimized using gradient descent. This allows the model to dynamically adjust the position and scale of the newly Cloned Splats based on the training objectives.
 
-
-%Then, it will add new Gaussians to the scene based on the density of the existing ones. This adaptive approach allows the model to dynamically adjust the number of Gaussians, improving the representation of the scene over time. The process ensures that the Gaussians are distributed more effectively, focusing computational resources on the most important areas of the scene.
+Similarly, the Split operation is enhanced by introducing learnable parameters for the split mean shift and scaling factor of the newly Split Splats. This allows the system to determine when and where to split primitives based on scene complexity and optimization needs. By optimizing these parameters using gradient descent, the model can dynamically adjust the position and scale of the newly Split Splats, leading to a more efficient and accurate representation of the scene.
 
 \chapter{Implementation}
 
 \section{Original Algorithm}
 
-The Adaptive Density Control (ADC) explained in the original papar suggests a set of heristics to better fit the scene. This suggests that every 100 iterations, it will densify and remove any Gaussians that are essentially transparent, i.e., with $\alpha$ is less than a threshold $\epsilon_\alpha$. It also suggests the idea of populating to empty areas by addresses “under-reconstructed” and “over-reconstructed” regions. They claimed observe that both have large \textit{large} view-space positional gradients. Intuitively, this is likely the case because they correspond to regions that are not yet well reconstructed, and the optimisation tries to forcebily move the Gaussian to fix this.
+% The Adaptive Density Control (ADC) explained in the original paper suggests a set of heuristics to better fit the scene. Specifically, every 100 iterations, it will densify and remove any Gaussians that are essentially transparent, i.e., with $\alpha$ less than a threshold $\epsilon_\alpha$. It also addresses “under-reconstructed” and “over-reconstructed” regions by populating empty areas. They observed that both types of regions have large view-space positional gradients. Intuitively, this is likely the case because these regions are not yet well reconstructed, and the optimization tries to forcibly move the Gaussians to fix this.
 
-Similar to other volumetric representations, our optimization can get stuck with floaters close to the input cameras; in our case this may result in an unjustified increase in the Gaussian density. An effective way to moderate the increase in the number of Gaussians is to set the $\alpha$ value close to zero every $N = 3000$
+% Similar to other volumetric representations, our optimization can get stuck with floaters close to the input cameras; in our case this may result in an unjustified increase in the Gaussian density. An effective way to moderate the increase in the number of Gaussians is to set the $\alpha$ value close to zero every $N = 3000$
 
-In underresonctructed 
-
-In the optimisation step, we represent the scene 
 In this section, we describe the baseline architecture used as the foundation for our algorithm. The baseline is based on the 3D Gaussian Splatting (3D-GS) technique, which models a scene using 3D Gaussians. The original paper presents a method for real-time radiance field rendering using a fixed number of Gaussians. Figures from the original paper are reproduced here to illustrate the baseline architecture.
 
 Firstly, we initialize our initial scene representation using the point cloud generated by the SfM process on a set of input images. We also obtain and store the camera position of each input image from the SfM process.
 
-At every iteration, we select one of the camera positions, and render the scene using that camera position. The rendered image is then compared with the corresponding input image, and a loss value is calculated. Gradients from the loss are then backpropogated to the parameters of the Splats, and used for their optimization.
+At every iteration, we select one of the camera positions, and render the scene using that camera position. The rendered image is then compared with the corresponding input image, and a loss value is calculated. Gradients from the loss are then backpropagated to the parameters of the Splats, and used for their optimization.
 
-At fixed intervals in the optimization process, we also carry out Adaptive Density Control, which comprises the following 3 operations: \textbf{Cloning}, \textbf{Splitting}, and \textbf{Pruning}. Notably, the ADC is called after the gradients have been back-propogated from the loss value, but before the parameters of the Splats in the model are stepped according to their gradients.
+At fixed intervals in the optimization process, we also carry out Adaptive Density Control, which comprises the following 3 operations: \textbf{Cloning}, \textbf{Splitting}, and \textbf{Pruning}, as shown in Algorithm~\ref{alg:original_algorithm}.
 
 \begin{center} % Center the entire content
     \begin{minipage}{0.75\textwidth}
             \begin{algorithm}[H]
-                \caption{Pseudo-code of forward \& backward propagation in primitive growth spherical/radial distribution optimization}
-                \label{alg:primitive_growth} 
                 \input{assets/original_optimization_and_densification}
+                \caption{Optimisation and Densification}
+                \label{alg:original_algorithm} 
             \end{algorithm}
     \end{minipage}
 \end{center}
 
 \subsection{Cloning}
-The Clone operation selects and replicates a subset of Splats in the model. Eligible Splats are selected using a gradient threshold; Splats with a positional gradient exceeding the gradient threshold, and also occur in under-reconstructed regions of the scene (determined by comparing the Splat's scale against the density of the scene), are selected to be Cloned. For each selected Splat, an exact copy is made, including all of its parameters, such as position, scaling, rotation, color, and transparency. Importantly, the gradients of the original Splats' attributes are not copied to the new Splat. Subsequently, during the optimization step, the original Splat has its attributes stepped according to their gradients, while the newly Cloned Splat remains unchanged.
+The Clone operation selects and replicates a subset of Splats in the model. Eligible Splats are chosen based on a gradient threshold. Specifically, Splats with a positional gradient exceeding this threshold and located in under-reconstructed regions (determined by comparing the Splat's scale against the scene density) are selected for cloning.
+
+For each selected Splat, an exact copy is made, including all its parameters such as position, scaling, rotation, color, and transparency. Importantly, the gradients of the original Splat's attributes are not copied to the new Splat. During the optimization step, the original Splat's attributes are updated according to their gradients, while the newly cloned Splat remains unchanged.
 
 \subsection{Splitting}
-The Split operation selects and splits a subset of Splats in the model. Similarly, eligible splats are selected for splitting by comparing their gradients against a threshold, as well as their scaling against the scene density. Each selected Splat is split into 2 copies, each with their scale divided by a factor of $\phi = 1.6$. To determine the positions of the 2 newly instantiated Splats, the original 3D Gaussian is used as a probability density function for sampling.
+The Split operation selects and splits a subset of Splats in the model. Eligible Splats are chosen based on a gradient threshold and their scaling relative to the scene density. Each selected Splat is split into two copies, with their scale divided by a factor of $\phi = 1.6$. The positions of the two newly instantiated Splats are determined by sampling from the original 3D Gaussian's probability density function.
 
 \subsection{Pruning}
 The Prune operation selects and removes a subset of Splats from the model, by comparing their transparency values, $\alpha$, against a minimum acceptable transparency, $\epsilon_{\alpha}$. Any splats in the scene with $\alpha < \epsilon_{\alpha}$ are removed from the representation, and are not rendered as part of the output image.
@@ -141,6 +138,7 @@ We also aim to optimize the scale $\varphi$ of the 2 newly split Splats with res
 
 \subsection{Pruning}
 \label{subsec:improved_pruning}
+
 We did not modify the original implementation of the Prune operation, focusing instead on the Clone and Split operations. However, we believe our methodology can be extended to the Prune operation in future work, as as the baseline algorithm also heuristically determines which splats to remove. Specifically, the minimum transparency threshold, $\epsilon_{\alpha}$, is chosen heuristically. An improved implementation could treat $\epsilon_{\alpha}$ as an optimizable parameter, allowing the Pruning operation to be optimized using gradient descent based on training objectives.
 
 \section{Implementation Details}
@@ -160,7 +158,7 @@ Zhan and Liang et al. provided pseudocode for the implementation of a suitable a
     \begin{minipage}{0.70\textwidth}
         \begin{algorithm}[H]
         \input{assets/clone_algo}
-        \caption{Clone Algorithm}
+        \caption{Pseudo-code of forward \& backward propagation in primitive growth spherical/radial distribution optimization}
         \label{alg:clone_algo}
         \end{algorithm}
     \end{minipage}
