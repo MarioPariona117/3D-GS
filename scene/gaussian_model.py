@@ -151,6 +151,10 @@ class GaussianModel:
         self.just_cloned_mask = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
         self.newly_cloned = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
 
+        self.d_index_prob_prob = torch.zeros((initialisation_points_count, 128), device = 'cuda', dtype = torch.float)
+        self.d_togrow_d_growth_directions_probabilities = torch.zeros((initialisation_points_count, 128, 3), device = 'cuda', dtype = torch.float)
+        self.d_togrow_d_growth_length_s = torch.zeros((initialisation_points_count, 1), device = 'cuda', dtype = torch.float)
+
     def initialise_epo_split(self, initialisation_points_count):
         samples = self._xyz.detach().clone()[torch.randperm(self._xyz.shape[0])[:12000]]
         differences = samples[:,None,:] - samples[None,:,:]
