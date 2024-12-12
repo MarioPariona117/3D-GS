@@ -888,6 +888,9 @@ class GaussianModel:
         new_newly_cloned = torch.zeros(added_points_count, device = "cuda", dtype = torch.bool)
         new_newly_split = torch.ones(added_points_count, device = "cuda", dtype = torch.bool)
 
+        self.d_xyz_d_s_prime = torch.concat((self._s_prime.grad, self._s_prime.grad[selected_pts_mask].repeat(2, 1)))
+        self.d_xyz_d_v = torch.concat((self._v.grad, self._v.grad[selected_pts_mask].repeat(2, 1)))
+
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_split, new_newly_cloned)
 
         prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
@@ -917,5 +920,8 @@ class GaussianModel:
 
         new_newly_split = torch.zeros(added_pts, device = "cuda", dtype = torch.bool)
         new_newly_cloned = torch.zeros(added_pts, device = "cuda", dtype = torch.bool)
+
+        self.d_xyz_d_s_prime = torch.concat((self.d_xyz_d_s_prime, torch.zeros((added_pts, 1), device = "cuda", dtype=torch.bool)))
+        self.d_xyz_d_v = torch.concat((self.d_xyz_d_v, torch.zeros((added_pts, 1), device = "cuda", dtype=torch.bool)))
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_split, new_newly_cloned)
