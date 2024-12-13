@@ -707,12 +707,12 @@ class GaussianModel:
         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter,:2], dim=-1, keepdim=True)
         self.denom[update_filter] += 1
     
-    def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii, iteration):
+    def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii, iteration, epo_start_iteration=4500):
         grads = self.xyz_gradient_accum / self.denom
         grads[grads.isnan()] = 0.0
 
         self.tmp_radii = radii
-        if iteration >= 3500:
+        if iteration >= epo_start_iteration:
             self.densify_and_clone(grads, max_grad, extent)
             self.densify_and_split(grads, max_grad, extent)
         else:
