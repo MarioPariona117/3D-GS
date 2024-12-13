@@ -48,9 +48,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     last_n = deque([])
     total = 0
     def augment_image(image, idx, iteration):
-        #print(f"{torch.max(image)}")
         average = 1 if len(last_n) < 1 else total / len(last_n)
-        # If it's significantly better than the average loss, add some noise 40% of the time.
+        # Add a small amount of random noise as a regulariser on densification steps. 
         if idx in image_losses and image_losses[idx] > average * 0.8 and (4500 < iteration < 25500) and (iteration % args.densification_interval == 1):
             noise = torch.randn_like(image) * 0.004
             noise = noise.to(image.device)

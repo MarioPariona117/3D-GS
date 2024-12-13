@@ -121,8 +121,6 @@ class GaussianModel:
         self.pretrained_exposures = None
         exposure = torch.eye(3, 4, device="cuda")[None].repeat(len(cam_infos), 1, 1)
         self._exposure = nn.Parameter(exposure.requires_grad_(True))
-        
-        # TODO: Explain masks
 
         # Learnable parameters for cloning operations
         self.initialise_epo_clone(initialisation_points_count)
@@ -145,9 +143,9 @@ class GaussianModel:
             [initialisation_points_count, self._growth_directions_count], 1 / self._growth_directions_count, device="cuda", requires_grad=True)
         )
 
-        # TODO: Why do we start with 1/100
         self._growth_length_s = nn.Parameter(torch.full([initialisation_points_count, 1], 0.0, device="cuda", requires_grad=True))
         
+        # Masks for what points have just been cloned and the resulting new clone.
         self.just_cloned_mask = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
         self.newly_cloned = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
 
@@ -156,17 +154,20 @@ class GaussianModel:
         self.d_togrow_d_growth_length_s = torch.zeros((initialisation_points_count, 1), device = 'cuda', dtype = torch.float)
 
     def initialise_epo_split(self, initialisation_points_count):
-        samples = self._xyz.detach().clone()[torch.randperm(self._xyz.shape[0])[:12000]]
-        differences = samples[:,None,:] - samples[None,:,:]
-        self.diameter = torch.sqrt(torch.max(torch.sum(differences ** 2, dim = -1)))
-        #print(f"{self.diameter}")
+        # Potential use case for diameter, but unused currently
+        # samples = self._xyz.detach().clone()[torch.randperm(self._xyz.shape[0])[:12000]]
+        # differences = samples[:,None,:] - samples[None,:,:]
+        # self.diameter = torch.sqrt(torch.max(torch.sum(differences ** 2, dim = -1)))
+
         # Learnable parameters for split meanshift (s_prime) and scalar parameter for the scaling factor (v)
         self._s_prime = nn.Parameter(torch.full([initialisation_points_count, 1], 0.0, device="cuda", requires_grad=True))
         self._v = nn.Parameter(torch.full([initialisation_points_count, 1], 0.0, device="cuda", requires_grad=True))
+
         # Gradients for thos values
         self.d_xyz_d_s_prime = torch.zeros((initialisation_points_count, 1), device = "cuda")
         self.d_xyz_d_v = torch.zeros((initialisation_points_count, 1), device = "cuda")
 
+        # Mask for what points have just been split (and so have subsequently been pruned)
         self.newly_split = torch.zeros(initialisation_points_count, device = "cuda", dtype = torch.bool)
 
     def training_setup(self, training_args: OptimizationParams):
@@ -253,8 +254,6 @@ class GaussianModel:
                 lr = self.s_prime_scheduler_args(iteration)
                 param_group['lr'] = lr
 
-
-    # TODO: Add EPO variables to capture and restore
     def capture(self):
         return (
             self.active_sh_degree,
@@ -592,9 +591,6 @@ class GaussianModel:
         stds = self.get_scaling[selected_pts_mask]
 
         S = stds / (1 + torch.exp(-self._s_prime[selected_pts_mask]))
-
-        # First half is for del_mu, second half is for -del_mu
-        # Multiply by 1+eps to preserve gradients (zeroes out otherwise)
         
         return torch.bmm(rots, S.unsqueeze(-1)).squeeze(-1)
 
@@ -602,9 +598,7 @@ class GaussianModel:
         """Perform EPO split
         
         Chooses points that satisfy the gradient condition.
-        For each, creates 2 points (as opposed to N in 3DGS).
-        Uses 𝜇 +- 𝛿𝜇𝑘 for the new position. 𝛿𝜇𝑘 =𝑅(𝜎𝑘∗(1/1+𝑒𝑥𝑝(−𝑠′)))
-        Uses exp(log(scale) / 𝜙) for the new Gaussian scaling. 𝜙 = 1.2∗(1/1+𝑒𝑥𝑝(−𝑣))+1
+        For each, creates 2 points (as opposed to N in 3D-GS).
         """
         n_init_points = self.get_num_points
         
@@ -617,6 +611,8 @@ class GaussianModel:
 
         # Create new points and find d(new_xyz)/d(s_prime)
         x = self.del_mu(selected_pts_mask)
+
+        # Multiply by 1+eps to prevent 0 gradient
         x = torch.cat((x*(1+eps), -x))
         new_xyz = x + self.get_xyz[selected_pts_mask].repeat(2, 1)
         new_xyz.backward(torch.ones_like(new_xyz))
@@ -652,7 +648,7 @@ class GaussianModel:
     def densify_and_clone(self, grads, grad_threshold, scene_extent):
         """Perform EPO clone
         
-        TODO: Insert formulae here.
+        Unlike 3D-GS, this shifts the clone by a certain distance.
         """
         # Extract points that satisfy the gradient condition
         selected_pts_mask = torch.where(torch.norm(grads, dim=-1) >= grad_threshold, True, False)
@@ -704,7 +700,6 @@ class GaussianModel:
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii, new_s_prime, new_v, new_growth_directions_probabilities, new_growth_length_s, new_newly_split, new_newly_cloned)
 
     def clone_handle_gradients (self, togrow, newsize, selected_pts_mask):
-        # TODO: As stated above, change this to be cleaner
         togrow.backward(torch.ones_like(togrow), retain_graph=True)
         # N x 128 x 3
         self.d_togrow_d_growth_directions_probabilities = self.index_directions.grad.detach().clone()
@@ -724,7 +719,7 @@ class GaussianModel:
     def calc_growth_dir_soft(self, selected_pts_mask, temperature=1e-3):
         """A differentiable replacement for argmax"""
         index_soft = torch.nn.functional.softmax(self._growth_directions_probabilities / temperature, dim = 1)
-        # TODO: Rename and explain index_directions
+        # A sum of directions scaled by their respective probabilities, retaining gradients for later use.
         self.index_directions = index_soft.unsqueeze(-1) * self._growth_directions
         self.index_directions.retain_grad()
         return self.index_directions[selected_pts_mask].sum(dim=1)
@@ -743,7 +738,6 @@ class GaussianModel:
         variance = torch.max(eigvals, dim = 1).values
         sd = torch.sqrt(variance).unsqueeze(1)
         ret = 2 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
-        # ret = 5e-4 * sd / (1 + torch.exp(- self._growth_length_s[selected_pts_mask]))
         return ret
     
     def calc_evolutive_density_control_param_grads (self):
