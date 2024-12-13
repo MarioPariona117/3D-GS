@@ -1,11 +1,45 @@
 # 3D Gaussian Splatting with Evolutive Primitive Organization
 ## Overview
-This section provides instructions for setting up and performing the evaluation of our model. Our work is built on the open-source implementation of 3D-GS by Kerbl et al., which we enhance, by replacing the Clone and Split operations of Adaptive Density Control with differentiable and optimizable operations.
+This section provides instructions for setting up and performing the evaluation of our model. Our work is built on the open-source implementation of [3D-GS](https://github.com/graphdeco-inria/gaussian-splatting) by Kerbl et al., which we enhance, by replacing the Clone and Split operations of Adaptive Density Control with differentiable and optimizable operations.
 
 The original README for the implementation of 3D-GS can be found in its entirety below.
 
 ## Instructions
+To setup, train, and evaluate our model on the Google Colab platform, use [this](https://colab.research.google.com/drive/1wMNGiCc51TXZUSn82bZVWvBxbRa8rJNT?usp=sharing) Colab notebook. We used the A100 GPU in all our training and evaluation. Due to the high memory demand of our model, lower-tier GPUs may experience difficulties during training.
 
+### Setup
+Run this cell to clone this repository into the Google Colab runtime, and install dependencies. Make sure to include `--recursive` to clone the required submodules
+
+### Download Datasets
+Run the first cell to download the Tanks and Temples, and the Deep Blending datasets.
+
+Run the second cell to download the LLFF dataset.
+
+Run the third bock to download the Mip-NeRF 360 dataset.
+
+### Run Code
+Run the first cell to train the model on the specified scene WITHOUT EVALUATION. By default, this saves the model in the directory `/3D-GS/output/model_name`, where `model_name` is a string of random characters. This can be overwritten by specifying a model directory using the `-m` command line argument.
+
+IF a model directory is specified, AND the model directory DOES NOT already exist, then training will commence like normal, with the output saved to the specified directory.
+
+IF a model directory is specified, AND the model directory DOES already exist, then the model will take the contents of the specified directory to be a partially trained model, and continue training it until the final iteration is reached.
+
+The second cell uses the `--eval` command line argument, to train and evaluate the model using a train / test split. The model will be trained using the images in the train split, and tested using the images in the test split. At the specified test iterations (configurable in `/3D-GS/train.py`), PSNR for both splits will be calculated.
+
+The third cell renders the images using a saved, trained model. This adds the directories `/3D-GS/output/model_name/ours_30000/renders`, which contains the rendered images using the fully trained model at 30000 iterations, and `/3D-GS/output/model_name/ours_30000/gt`, which contain the ground truth. Other directories may also be created at different numbers of iterations, depending on the specified save iterations (configurable in `/3D-GS/train.py`).
+
+The fourth cell displays the selected rendered image, using the specified model name, saved iteration number, and image number.
+
+The fifth cell runs the full evaluation of the model on the selected scenes (scenes can be selected in `/3D-GS/full_eval.py`). This trains the model on each scene, and calculates various metrics such as SSIM, PSNR, LPIPS and memory footprint of the model. The results for each scene will be placed in the directory `/3D-GS/eval/scene_name/results.json`.
+
+### Saving Outputs Locally
+To save any of the model's outputs locally, the following methods can be used:
+
+#### 1. Zip and Download
+The command `!zip` can be used to zip any folders in the Colab machine, which can then be downloaded to the user's local machine.
+
+#### 2. Save to Drive
+The command `drive.mount()` can be used to mount the user's Google Drive to the Colab machine. Subsequently, the `!mv` or `!cp` command can be used to move or copy the desired outputs to the user's Google Drive.
 
 # 3D Gaussian Splatting for Real-Time Radiance Field Rendering
 Bernhard Kerbl*, Georgios Kopanas*, Thomas Leimkühler, George Drettakis (* indicates equal contribution)<br>
