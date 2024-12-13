@@ -181,28 +181,25 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         if iteration < opt.densify_until_iter:
             gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
             gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
+            epo_start_iteration = 4500
             if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                 size_threshold = 20 if iteration > opt.opacity_reset_interval else None
-                gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii, iteration)
+                gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold, radii, iteration, epo_start_iteration)
                 
                 gaussians.optimizer.zero_grad(set_to_none = True)
                 gaussians.exposure_optimizer.zero_grad(set_to_none = True)
 
                 image, viewspace_point_tensor, visibility_filter, radii, loss, Ll1, Ll1depth = render_and_calc_loss()
-                """ print(gaussians._xyz.grad)
-                print(gaussians.growth_directions_probabilities.grad) """
-                if iteration >= 3500:
+
+                if iteration >= epo_start_iteration:
                     gaussians.calc_evolutive_density_control_param_grads()
-                # print(f"growth_probs: {torch.max(gaussians.growth_directions_probabilities.grad)}")
-                # print(f"growth_len: {torch.max(gaussians.growth_length_s.grad)}")
-                # print(f"s_prime: {torch.max(gaussians._s_prime.grad)}")
-                # print(f"v: {torch.max(gaussians._v.grad)}")
+
                 gls_mean[iteration] = torch.mean(gaussians._growth_length_s).cpu().detach().clone()
                 sprime_mean[iteration] = torch.mean(gaussians._s_prime).cpu().detach().clone()
                 v_mean[iteration] = torch.mean(gaussians._v).cpu().detach().clone()
-
             if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
-                gaussians.reset_opacity()
+                with torch.no_grad():
+                    gaussians.reset_opacity()
 
         iter_end.record()
 
