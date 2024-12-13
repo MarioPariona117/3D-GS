@@ -1,3 +1,12 @@
+# 3D Gaussian Splatting with Evolutive Primitive Organization
+## Overview
+This section provides instructions for setting up and performing the evaluation of our model. Our work is built on the open-source implementation of 3D-GS by Kerbl et al., which we enhance, by replacing the Clone and Split operations of Adaptive Density Control with differentiable and optimizable operations.
+
+The original README for the implementation of 3D-GS can be found in its entirety below.
+
+## Instructions
+
+
 # 3D Gaussian Splatting for Real-Time Radiance Field Rendering
 Bernhard Kerbl*, Georgios Kopanas*, Thomas Leimkühler, George Drettakis (* indicates equal contribution)<br>
 | [Webpage](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/) | [Full Paper](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/3d_gaussian_splatting_high.pdf) | [Video](https://youtu.be/T_kXY43VZnk) | [Other GRAPHDECO Publications](http://www-sop.inria.fr/reves/publis/gdindex.php) | [FUNGRAPH project page](https://fungraph.inria.fr) |<br>
