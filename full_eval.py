@@ -13,26 +13,16 @@ import os
 from argparse import ArgumentParser
 import time
 
-""" mipnerf360_outdoor_scenes = ["bicycle", "stump"]     
+mipnerf360_outdoor_scenes = ["bicycle", "stump"]    
 mipnerf360_indoor_scenes = ["counter"]
-tanks_and_temples_scenes = ["train"]
+tanks_and_temples_scenes = ["truck", "train"]
 deep_blending_scenes = ["playroom"]
-llff_scenes = ["horns", "trex"] """
-mipnerf360_outdoor_scenes = []     
-mipnerf360_indoor_scenes = ["room", "kitchen", "bonsai"]
-tanks_and_temples_scenes = []
-deep_blending_scenes = []
-llff_scenes = []
-# mipnerf360_outdoor_scenes = ["bicycle", "stump"]    
-# mipnerf360_indoor_scenes = ["counter"]
-# tanks_and_temples_scenes = ["truck", "train"]
-# deep_blending_scenes = ["playroom"]
-# llff_scenes = ["horns", "trex"]
-# mipnerf360_outdoor_scenes = ["bicycle", "flowers", "garden", "stump", "treehill"]
-# mipnerf360_indoor_scenes = ["room", "counter", "kitchen", "bonsai"]
-# tanks_and_temples_scenes = ["truck", "train"]
-# deep_blending_scenes = ["drjohnson", "playroom"]
-# llff_scenes = ["fern", "flower", "fortress", "horns", "leaves", "orchids", "room", "trex"]
+llff_scenes = ["horns", "trex"]
+mipnerf360_outdoor_scenes = ["bicycle", "flowers", "garden", "stump", "treehill"]
+mipnerf360_indoor_scenes = ["room", "counter", "kitchen", "bonsai"]
+tanks_and_temples_scenes = ["truck", "train"]
+deep_blending_scenes = ["drjohnson", "playroom"]
+llff_scenes = ["fern", "flower", "fortress", "horns", "leaves", "orchids", "room", "trex"]
 
 parser = ArgumentParser(description="Full evaluation script parameters")
 parser.add_argument("--skip_training", action="store_true")
