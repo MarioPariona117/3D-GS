@@ -13,4 +13,8 @@ tandt/*
 tandt_db.zip
 
 SIBR_viewers/*
-submodules/*
+# submodules/*
+
+venv
+saved_output/*
+nohup.out
