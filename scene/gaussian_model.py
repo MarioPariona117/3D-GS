@@ -209,39 +209,25 @@ class GaussianModel:
                                                         lr_delay_mult=training_args.exposure_lr_delay_mult,
                                                         max_steps=training_args.iterations)
 
-        def custom_lr_func(initial_lr, final_lr, lr_delay_steps, lr_delay_mult, max_steps):
+        def custom_lr_func(initial_lr, final_lr, max_steps):
             def lr_func(step):
-                if step < lr_delay_steps:
-                    # Linear interpolation during the delay phase
-                    delay_factor = lr_delay_mult + (1 - lr_delay_mult) * (step / lr_delay_steps)
-                    return initial_lr * delay_factor
-                else:
-                    # Start exponential decay from the end of the delay phase
-                    effective_initial_lr = initial_lr * (lr_delay_mult + (1 - lr_delay_mult))
-                    decay_rate = (final_lr / effective_initial_lr) ** (1 / (max_steps - lr_delay_steps))
-                    adjusted_step = step - lr_delay_steps
-                    return effective_initial_lr * (decay_rate ** adjusted_step)
+                factor = (final_lr - initial_lr) / max_steps
+                return initial_lr + factor * step
 
             return lr_func
 
         self.growth_length_s_scheduler_args = custom_lr_func(
             training_args.growth_length_lr, training_args.growth_length_lr/100,
-            lr_delay_steps=3000,
-            lr_delay_mult=0.5,
             max_steps=training_args.densify_until_iter
         )
 
         self.v_scheduler_args = custom_lr_func(
             training_args.v_lr, training_args.v_lr/100,
-            lr_delay_steps=3000,
-            lr_delay_mult=0.5,
             max_steps=training_args.densify_until_iter
         )
 
         self.s_prime_scheduler_args = custom_lr_func(
             training_args.s_prime_lr, training_args.s_prime_lr/100,
-            lr_delay_steps=3000,
-            lr_delay_mult=0.5,
             max_steps=training_args.densify_until_iter
         )
 
