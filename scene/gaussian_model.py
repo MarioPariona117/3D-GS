@@ -225,22 +225,22 @@ class GaussianModel:
             return lr_func
 
         self.growth_length_s_scheduler_args = custom_lr_func(
-            2.5, 0.001,
-            lr_delay_steps=2000,
+            training_args.growth_length_lr, training_args.growth_length_lr/100,
+            lr_delay_steps=3000,
             lr_delay_mult=0.5,
             max_steps=training_args.densify_until_iter
         )
 
         self.v_scheduler_args = custom_lr_func(
-            0.01, 0.0001,
-            lr_delay_steps=1000,
+            training_args.v_lr, training_args.v_lr/100,
+            lr_delay_steps=3000,
             lr_delay_mult=0.5,
             max_steps=training_args.densify_until_iter
         )
 
         self.s_prime_scheduler_args = custom_lr_func(
-            0.25, 0.0003,
-            lr_delay_steps=2000,
+            training_args.s_prime_lr, training_args.s_prime_lr/100,
+            lr_delay_steps=3000,
             lr_delay_mult=0.5,
             max_steps=training_args.densify_until_iter
         )
@@ -255,8 +255,8 @@ class GaussianModel:
             if param_group["name"] == "xyz":
                 lr = self.xyz_scheduler_args(iteration)
                 param_group['lr'] = lr
-                # return lr
-            """ if param_group["name"] == "growth_length_s":
+
+            if param_group["name"] == "growth_length_s":
                 lr = self.growth_length_s_scheduler_args(iteration)
                 param_group['lr'] = lr
             if param_group["name"] == "v":
@@ -265,7 +265,7 @@ class GaussianModel:
                 # print(f"\n v learning rate is now {lr}")
             if param_group["name"] == "s_prime":
                 lr = self.s_prime_scheduler_args(iteration)
-                param_group['lr'] = lr """
+                param_group['lr'] = lr
 
 
     # TODO: Add EPO variables to capture and restore
@@ -371,144 +371,7 @@ class GaussianModel:
             l.append(f'scale_{i}')
         for i in range(self._rotation.shape[1]):
             l.append(f'rot_{i}')
-        # for i in range(self._s_prime.shape[1]):
-        #     l.append(f's_prime_{i}')
-        # for i in range(self._v.shape[1]):
-        #     l.append(f'v_{i}')
-
-        # for i in range(self._growth_directions_probabilities.shape[1]):
-        #     l.append(f'growth_directions_probabilities_{i}')
-        # for i in range(self._growth_length_s.shape[1]):
-        #     l.append(f'growth_length_s_{i}')
         return l
-    
-    def reduce_old_ply(self, path, out_path, use_train_test_exp = False):
-        plydata = PlyData.read(path)
-        if use_train_test_exp:
-            exposure_file = os.path.join(os.path.dirname(path), os.pardir, os.pardir, "exposure.json")
-            if os.path.exists(exposure_file):
-                with open(exposure_file, "r") as f:
-                    exposures = json.load(f)
-                self.pretrained_exposures = {image_name: torch.FloatTensor(exposures[image_name]).requires_grad_(False).cuda() for image_name in exposures}
-                print(f"Pretrained exposures loaded.")
-            else:
-                print(f"No exposure to be loaded at {exposure_file}")
-                self.pretrained_exposures = None
-
-        xyz = np.stack((np.asarray(plydata.elements[0]["x"]),
-                        np.asarray(plydata.elements[0]["y"]),
-                        np.asarray(plydata.elements[0]["z"])),  axis=1)
-        opacities = np.asarray(plydata.elements[0]["opacity"])[..., np.newaxis]
-
-        features_dc = np.zeros((xyz.shape[0], 3, 1))
-        features_dc[:, 0, 0] = np.asarray(plydata.elements[0]["f_dc_0"])
-        features_dc[:, 1, 0] = np.asarray(plydata.elements[0]["f_dc_1"])
-        features_dc[:, 2, 0] = np.asarray(plydata.elements[0]["f_dc_2"])
-
-        extra_f_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("f_rest_")]
-        extra_f_names = sorted(extra_f_names, key = lambda x: int(x.split('_')[-1]))
-        assert len(extra_f_names)==3*(self.max_sh_degree + 1) ** 2 - 3
-        features_extra = np.zeros((xyz.shape[0], len(extra_f_names)))
-        for idx, attr_name in enumerate(extra_f_names):
-            features_extra[:, idx] = np.asarray(plydata.elements[0][attr_name])
-        features_extra = features_extra.reshape((features_extra.shape[0], 3, (self.max_sh_degree + 1) ** 2 - 1))
-
-        scale_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("scale_")]
-        scale_names = sorted(scale_names, key = lambda x: int(x.split('_')[-1]))
-        scales = np.zeros((xyz.shape[0], len(scale_names)))
-        for idx, attr_name in enumerate(scale_names):
-            scales[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        rot_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("rot")]
-        rot_names = sorted(rot_names, key = lambda x: int(x.split('_')[-1]))
-        rots = np.zeros((xyz.shape[0], len(rot_names)))
-        for idx, attr_name in enumerate(rot_names):
-            rots[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        s_prime_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("s_prime")]
-        s_prime_names = sorted(s_prime_names, key = lambda x: int(x.split('_')[-1]))
-        s_primes = np.zeros((xyz.shape[0], len(s_prime_names)))
-        for idx, attr_name in enumerate(s_prime_names):
-            s_primes[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        v_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("v")]
-        v_names = sorted(v_names, key = lambda x: int(x.split('_')[-1]))
-        v = np.zeros((xyz.shape[0], len(v_names)))
-        for idx, attr_name in enumerate(v_names):
-            v[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        growth_directions_probabilities_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_directions_probabilities")]
-        growth_directions_probabilities_names = sorted(growth_directions_probabilities_names, key = lambda x: int(x.split('_')[-1]))
-        growth_directions_probabilities = np.zeros((xyz.shape[0], len(growth_directions_probabilities_names)))
-        for idx, attr_name in enumerate(growth_directions_probabilities_names):
-            growth_directions_probabilities[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        growth_length_s_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_length_s")]
-        growth_length_s_names = sorted(growth_length_s_names, key = lambda x: int(x.split('_')[-1]))
-        growth_length_s = np.zeros((xyz.shape[0], len(growth_length_s_names)))
-        for idx, attr_name in enumerate(growth_length_s_names):
-            growth_length_s[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        self._xyz = nn.Parameter(torch.tensor(xyz, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._features_dc = nn.Parameter(torch.tensor(features_dc, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
-        self._features_rest = nn.Parameter(torch.tensor(features_extra, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
-        self._opacity = nn.Parameter(torch.tensor(opacities, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._scaling = nn.Parameter(torch.tensor(scales, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
-
-        self._s_prime = nn.Parameter(torch.tensor(s_primes, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._v = nn.Parameter(torch.tensor(v, dtype=torch.float, device="cuda").requires_grad_(True))
-
-        self._growth_directions_probabilities = nn.Parameter(torch.tensor(growth_directions_probabilities, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._growth_length_s = nn.Parameter(torch.tensor(growth_length_s, dtype=torch.float, device="cuda").requires_grad_(True))
-
-        self.active_sh_degree = self.max_sh_degree
-
-        path = out_path
-
-        mkdir_p(os.path.dirname(path))
-
-        xyz = self._xyz.detach().cpu().numpy()
-        normals = np.zeros_like(xyz)
-        f_dc = self._features_dc.detach().transpose(1, 2).flatten(start_dim=1).contiguous().cpu().numpy()
-        f_rest = self._features_rest.detach().transpose(1, 2).flatten(start_dim=1).contiguous().cpu().numpy()
-        opacities = self._opacity.detach().cpu().numpy()
-        scale = self._scaling.detach().cpu().numpy()
-        rotation = self._rotation.detach().cpu().numpy()
-
-        s_prime = self._s_prime.detach().cpu().numpy()
-        v = self._v.detach().cpu().numpy()
-        growth_directions_probabilities = self._growth_directions_probabilities.detach().cpu().numpy()
-        growth_length_s = self._growth_length_s.detach().cpu().numpy()
-
-        l = ['x', 'y', 'z', 'nx', 'ny', 'nz']
-        # All channels except the 3 DC
-        for i in range(self._features_dc.shape[1]*self._features_dc.shape[2]):
-            l.append(f'f_dc_{i}')
-        for i in range(self._features_rest.shape[1]*self._features_rest.shape[2]):
-            l.append(f'f_rest_{i}')
-        l.append('opacity')
-        for i in range(self._scaling.shape[1]):
-            l.append(f'scale_{i}')
-        for i in range(self._rotation.shape[1]):
-            l.append(f'rot_{i}')
-        for i in range(self._s_prime.shape[1]):
-            l.append(f's_prime_{i}')
-        for i in range(self._v.shape[1]):
-            l.append(f'v_{i}')
-
-        for i in range(self._growth_directions_probabilities.shape[1]):
-            l.append(f'growth_directions_probabilities_{i}')
-        for i in range(self._growth_length_s.shape[1]):
-            l.append(f'growth_length_s_{i}')
-
-        dtype_full = [(attribute, 'f4') for attribute in l]
-
-        elements = np.empty(self.get_num_points, dtype=dtype_full)
-        attributes = np.concatenate((xyz, normals, f_dc, f_rest, opacities, scale, rotation, s_prime, v, growth_directions_probabilities, growth_length_s), axis=1)
-        elements[:] = list(map(tuple, attributes))
-        el = PlyElement.describe(elements, 'vertex')
-        PlyData([el]).write(path)
 
     def save_ply(self, path):
         mkdir_p(os.path.dirname(path))
@@ -521,15 +384,10 @@ class GaussianModel:
         scale = self._scaling.detach().cpu().numpy()
         rotation = self._rotation.detach().cpu().numpy()
 
-        # s_prime = self._s_prime.detach().cpu().numpy()
-        # v = self._v.detach().cpu().numpy()
-        # growth_directions_probabilities = self._growth_directions_probabilities.detach().cpu().numpy()
-        # growth_length_s = self._growth_length_s.detach().cpu().numpy()
-
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
 
         elements = np.empty(self.get_num_points, dtype=dtype_full)
-        # attributes = np.concatenate((xyz, normals, f_dc, f_rest, opacities, scale, rotation, s_prime, v, growth_directions_probabilities, growth_length_s), axis=1)
+
         attributes = np.concatenate((xyz, normals, f_dc, f_rest, opacities, scale, rotation), axis=1)
         elements[:] = list(map(tuple, attributes))
         el = PlyElement.describe(elements, 'vertex')
@@ -579,42 +437,12 @@ class GaussianModel:
         for idx, attr_name in enumerate(rot_names):
             rots[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
-        # s_prime_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("s_prime")]
-        # s_prime_names = sorted(s_prime_names, key = lambda x: int(x.split('_')[-1]))
-        # s_primes = np.zeros((xyz.shape[0], len(s_prime_names)))
-        # for idx, attr_name in enumerate(s_prime_names):
-        #     s_primes[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        # v_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("v")]
-        # v_names = sorted(v_names, key = lambda x: int(x.split('_')[-1]))
-        # v = np.zeros((xyz.shape[0], len(v_names)))
-        # for idx, attr_name in enumerate(v_names):
-        #     v[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        # growth_directions_probabilities_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_directions_probabilities")]
-        # growth_directions_probabilities_names = sorted(growth_directions_probabilities_names, key = lambda x: int(x.split('_')[-1]))
-        # growth_directions_probabilities = np.zeros((xyz.shape[0], len(growth_directions_probabilities_names)))
-        # for idx, attr_name in enumerate(growth_directions_probabilities_names):
-        #     growth_directions_probabilities[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
-        # growth_length_s_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("growth_length_s")]
-        # growth_length_s_names = sorted(growth_length_s_names, key = lambda x: int(x.split('_')[-1]))
-        # growth_length_s = np.zeros((xyz.shape[0], len(growth_length_s_names)))
-        # for idx, attr_name in enumerate(growth_length_s_names):
-        #     growth_length_s[:, idx] = np.asarray(plydata.elements[0][attr_name])
-
         self._xyz = nn.Parameter(torch.tensor(xyz, dtype=torch.float, device="cuda").requires_grad_(True))
         self._features_dc = nn.Parameter(torch.tensor(features_dc, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
         self._features_rest = nn.Parameter(torch.tensor(features_extra, dtype=torch.float, device="cuda").transpose(1, 2).contiguous().requires_grad_(True))
         self._opacity = nn.Parameter(torch.tensor(opacities, dtype=torch.float, device="cuda").requires_grad_(True))
         self._scaling = nn.Parameter(torch.tensor(scales, dtype=torch.float, device="cuda").requires_grad_(True))
         self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
-
-        # self._s_prime = nn.Parameter(torch.tensor(s_primes, dtype=torch.float, device="cuda").requires_grad_(True))
-        # self._v = nn.Parameter(torch.tensor(v, dtype=torch.float, device="cuda").requires_grad_(True))
-
-        # self._growth_directions_probabilities = nn.Parameter(torch.tensor(growth_directions_probabilities, dtype=torch.float, device="cuda").requires_grad_(True))
-        # self._growth_length_s = nn.Parameter(torch.tensor(growth_length_s, dtype=torch.float, device="cuda").requires_grad_(True))
 
         self.active_sh_degree = self.max_sh_degree
 
